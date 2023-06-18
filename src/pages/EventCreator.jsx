@@ -8,6 +8,10 @@ import { UserAuth } from '../contexts/AuthContext';
 import dayjs, {Dayjs} from 'dayjs';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { db } from '../firebase';
+import { doc, setDoc, addDoc, collection } from "firebase/firestore"; 
+
+
 
 
 export default function EventCreator() {
@@ -16,6 +20,7 @@ export default function EventCreator() {
 
     //this is needed for verifying if the user is an admin (and for the 'creator' field)
     const {user} = UserAuth();
+    const currentUserRef = doc(db, 'users', user.uid);
     
     //form fields
     const [description, setDescription] = useState('');
@@ -24,10 +29,38 @@ export default function EventCreator() {
     const [time, setTime] = useState(dayjs());
     const [type, setType] = useState('');
 
+    //add event to firestore
+    const addEvent = async () => {
+      try{
+      await addDoc(collection(db, "events"), {
+        creator: currentUserRef,
+        description: description,
+        name: name,
+        pointsEarned: pointsEarned,
+        time: new Date(time),
+        type: type
+      });
+      setSuccess('Event created successfully!');
+    } catch(e){
+      console.log(e.message);
+      setError(e.message);
+    }
+    }
 
     const handleSubmit = (event) => {
         event.preventDefault();
+
+        if(!name || !description || !pointsEarned || !type){
+          setError('Invalid or empty input(s). Please try again.');
+          return;
+    } else{
+      setError('');
+      setSuccess('');
+      addEvent();
+
+      
     }
+  }
 
 
   return (
@@ -50,7 +83,7 @@ export default function EventCreator() {
                 }
               />
             <TextField
-                error={!name}
+                error={!description}
                 margin="normal"
                 required
                 fullWidth
@@ -72,6 +105,57 @@ export default function EventCreator() {
               sx={{mt: 2}}
               />
               </LocalizationProvider>
+              <TextField
+                margin="normal"
+                error={!pointsEarned}
+                required
+                name="pointsEarned"
+                label="Points"
+                type="number"
+                id="pointsEarned"
+                onChange={(e) => setPointsEarned(e.target.value)}
+                sx={{ml: 2}}
+              />
+              <InputLabel> Event Type?* </InputLabel>
+              <Select
+                value={type}
+                error={!type}
+                onChange={(e) => setType(e.target.value)}
+                >
+                  <MenuItem value={'Sport'}>Sports</MenuItem>
+                  <MenuItem value={'FBLA'}>FBLA</MenuItem>
+                  <MenuItem value={'Robotics'}>Robotics</MenuItem>
+                  <MenuItem value={'Chess'}>Chess</MenuItem>
+                  <MenuItem value={'Volunteering'}>Volunteering</MenuItem>
+                  <MenuItem value={'Other'}>Other</MenuItem>
+                </Select>
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Create
+              </Button>
+
+              {error?
+              <Alert 
+              variant='filled'
+              severity='error'
+              sx={{mt:2}}
+              >{error}</Alert> : null
+              } 
+
+              {success?
+              <Alert 
+              variant='filled'
+              severity='success'
+              sx={{mt:2}}
+              >{success}</Alert> : null
+              } 
+              
+
 
 
     </Box>
