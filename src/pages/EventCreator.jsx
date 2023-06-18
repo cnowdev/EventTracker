@@ -6,6 +6,8 @@ import { auth, functions } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { UserAuth } from '../contexts/AuthContext';
 import dayjs, {Dayjs} from 'dayjs';
+import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 
 export default function EventCreator() {
@@ -47,6 +49,31 @@ export default function EventCreator() {
                   setName(e.target.value)
                 }
               />
+            <TextField
+                error={!name}
+                margin="normal"
+                required
+                fullWidth
+                id="description"
+                label="Event Description"
+                name="description"
+                autoFocus
+                multiline
+                rows={4}
+                onChange={(e) => 
+                  setDescription(e.target.value)
+                }
+              />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DateTimePicker
+              label="Event Time"
+              value={time}
+              onChange={(e) => setTime(e)}
+              sx={{mt: 2}}
+              />
+              </LocalizationProvider>
+
+
     </Box>
     </div>
   )
