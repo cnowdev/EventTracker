@@ -94,6 +94,17 @@ export default function Dashboard({children}) {
   const {user} = UserAuth();
 
 
+  const pageName = (val) => {
+    switch(val){
+      case 'Eventcreator':
+        return 'Event Creator';
+      case 'Usercreator':
+        return 'User Creator';
+      default:
+        return val;
+  }
+}
+
   const handleLogout = async () => {
     try{
       await logout();
@@ -149,7 +160,7 @@ export default function Dashboard({children}) {
               noWrap
               sx={{ flexGrow: 1 }}
             >
-             {(location.pathname.split('/')[1].charAt(0).toUpperCase() + location.pathname.split('/')[1].slice(1) === 'Usercreator')? 'User Creator' : location.pathname.split('/')[1].charAt(0).toUpperCase() + location.pathname.split('/')[1].slice(1)}
+             {pageName(location.pathname.split('/')[1].charAt(0).toUpperCase() + location.pathname.split('/')[1].slice(1))}
             </Typography>
            
             <Button variant="contained" color='error' onClick={handleLogout} startIcon={<LogoutIcon />}>Logout</Button>

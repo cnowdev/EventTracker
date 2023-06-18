@@ -9,6 +9,7 @@ import Events from './pages/Events'
 import Leaderboard  from './pages/Leaderboard'
 import Prizes from './pages/Prizes'
 import UserCreator from './pages/UserCreator'
+import EventCreator from './pages/EventCreator'
 
 
 function App() {
@@ -51,6 +52,13 @@ function App() {
           <ProtectedRoute>
             <Dashboard>
               <UserCreator/>
+            </Dashboard>
+          </ProtectedRoute>
+        } /> 
+        <Route path="/eventcreator" element={
+          <ProtectedRoute>
+            <Dashboard>
+              <EventCreator/>
             </Dashboard>
           </ProtectedRoute>
         } /> 

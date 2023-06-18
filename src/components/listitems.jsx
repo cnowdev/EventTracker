@@ -51,11 +51,11 @@ export const secondaryListItems = (
       </ListItemIcon>
       <ListItemText primary="User Creator" />
     </ListItemButton>
-    <ListItemButton>
+    <ListItemButton component={Link} to="/eventcreator" >
       <ListItemIcon>
         <AssignmentIcon />
       </ListItemIcon>
-      <ListItemText primary="Do" />
+      <ListItemText primary="Event Creator" />
     </ListItemButton>
     <ListItemButton>
       <ListItemIcon>
