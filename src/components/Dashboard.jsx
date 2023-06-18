@@ -100,6 +100,8 @@ export default function Dashboard({children}) {
         return 'Event Creator';
       case 'Usercreator':
         return 'User Creator';
+      case 'Prizecreator':
+        return 'Prize Creator';
       default:
         return val;
   }

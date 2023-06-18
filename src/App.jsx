@@ -10,6 +10,7 @@ import Leaderboard  from './pages/Leaderboard'
 import Prizes from './pages/Prizes'
 import UserCreator from './pages/UserCreator'
 import EventCreator from './pages/EventCreator'
+import PrizeCreator from './pages/PrizeCreator'
 
 
 function App() {
@@ -59,6 +60,13 @@ function App() {
           <ProtectedRoute>
             <Dashboard>
               <EventCreator/>
+            </Dashboard>
+          </ProtectedRoute>
+        } /> 
+        <Route path="/prizecreator" element={
+          <ProtectedRoute>
+            <Dashboard>
+              <PrizeCreator/>
             </Dashboard>
           </ProtectedRoute>
         } /> 
