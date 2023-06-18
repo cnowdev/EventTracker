@@ -11,22 +11,54 @@ const {onRequest, onCall} = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 const bodyParser = require("body-parser");
 
-exports.createUserAccount = onCall((request, response) => {
+const {initializeApp} = require("firebase-admin/app");
+const {getFirestore} = require("firebase-admin/firestore");
+const {getAuth} = require("firebase-admin/auth");
+
+initializeApp();
+
+const firestore = getFirestore();
+const auth = getAuth();
+
+exports.createUserAccount = onCall((request) => {
     const email = request.data.email;
     const password = request.data.password;
     const gpa = request.data.gpa;
     const grade = request.data.grade;
     const uid = request.auth.uid;
+    const name = request.data.name;
+    const admin = request.data.admin;
 
-    logger.info({email: email, password: password, uid: uid, gpa: gpa, grade: grade});   
+    logger.info({email: email, password: password, uid: uid, gpa: gpa, grade: grade, name: name, admin: admin});   
     
 
     try{
-        
+         return auth.createUser({
+            email: email,
+            password: password
+        }).then((userRecord) => {
+            logger.info("Successfully created new user:", userRecord.uid);
+            return firestore.collection("users").doc(userRecord.uid).set({
+                gpa: gpa,
+                grade: grade,
+                name: name,
+                admin: admin,
+                points: 0
+            }).then(() => {
+                logger.info("Successfully created new user document");
+                return {status: 'complete', message: "Successfully created new user document"};
+            }).catch((error) => {
+                logger.error("Error creating new user document: ", error);
+                return {status: 'error', message: "Error creating new user document"};
+            });
+        }).catch((error) => {
+            logger.error("Error creating new user:", error);
+            return {status: 'error', message: "Error creating new user"};
+        });
     }catch(e){
         logger.error(e);
     }
-    return 'data received';
+    
 });
 
 // Create and deploy your first functions

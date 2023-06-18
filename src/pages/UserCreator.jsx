@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, TextField, Button, Typography } from '@mui/material'
+import { Box, TextField, Button, Typography, Select, InputLabel, MenuItem } from '@mui/material'
 import { Alert } from '@mui/material';
 import { useState } from 'react';
 import { auth, functions } from '../firebase';
@@ -8,6 +8,7 @@ import { UserAuth } from '../contexts/AuthContext';
 
 export default function UserCreator() {
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const {user} = UserAuth();
   
 
@@ -16,6 +17,8 @@ export default function UserCreator() {
     const [password, setPassword] = useState('');
     const [GPA, setGPA] = useState('');
     const [grade, setGrade] = useState('');
+    const [name, setName] = useState('');
+    const [admin, setAdmin] = useState(false);
 
 
     //email validator 
@@ -37,9 +40,15 @@ export default function UserCreator() {
           event.preventDefault();
           try{
             setError('');
+            setSuccess('');
             const createUserAccount = httpsCallable(functions, 'createUserAccount');
-            createUserAccount({email: email, password: password, uid: user.uid, gpa: GPA, grade: grade}).then((result) => {
-              console.log(result);
+            createUserAccount({email: email, password: password, uid: user.uid, gpa: GPA, grade: grade, name: name, admin: admin}).then((result) => {
+              console.log(result.data);
+              if(result.data.status === 'complete'){
+                setSuccess('User created successfully!');
+              } else {
+                setError(result.data.message + ', that email may already be in use.');
+              }
             });
             
           }catch(e){
@@ -58,6 +67,19 @@ export default function UserCreator() {
             Create a User
         </Typography>
         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
+              <TextField
+                error={!name}
+                margin="normal"
+                required
+                fullWidth
+                id="name"
+                label="Name"
+                name="name"
+                autoFocus
+                onChange={(e) => 
+                  setName(e.target.value)
+                }
+              />
               <TextField
                 error={!email || !validateEmail(email)? true : false}
                 margin="normal"
@@ -104,6 +126,15 @@ export default function UserCreator() {
                 sx={{ml: 2}}
                 onChange={(e) => setGrade(e.target.value)}
               />
+              <InputLabel> Admin? </InputLabel>
+              <Select
+                value={admin}
+                onChange={(e) => setAdmin(e.target.value)}
+                >
+                  <MenuItem value={true}>Yes</MenuItem>
+                  <MenuItem value={false}>No</MenuItem>
+                </Select>
+
               <Button
                 type="submit"
                 fullWidth
@@ -120,6 +151,17 @@ export default function UserCreator() {
               sx={{mt:2}}
               >{error}</Alert> : null
               } 
+
+              {success?
+              <Alert 
+              variant='filled'
+              severity='success'
+              sx={{mt:2}}
+              >{success}</Alert> : null
+              } 
+              
+
+
 
             </Box>
 
