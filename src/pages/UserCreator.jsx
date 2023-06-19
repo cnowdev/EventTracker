@@ -9,6 +9,7 @@ import { UserAuth } from '../contexts/AuthContext';
 export default function UserCreator() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [loading, setLoading] = useState('');
     const {user} = UserAuth();
   
 
@@ -41,10 +42,12 @@ export default function UserCreator() {
           try{
             setError('');
             setSuccess('');
+            setLoading("Creating User... Please don't refresh the page.")
             const createUserAccount = httpsCallable(functions, 'createUserAccount');
             createUserAccount({email: email, password: password, uid: user.uid, gpa: GPA, grade: grade, name: name, admin: admin}).then((result) => {
               console.log(result.data);
-              if(result.data.status === 'complete'){
+              setLoading('');
+              if(result.data.status === 'complete'){            
                 setSuccess('User created successfully!');
               } else {
                 setError(result.data.message + ', that email may already be in use.');
@@ -158,6 +161,13 @@ export default function UserCreator() {
               severity='success'
               sx={{mt:2}}
               >{success}</Alert> : null
+              } 
+              {loading?
+              <Alert 
+              variant='filled'
+              severity='info'
+              sx={{mt:2}}
+              >{loading}</Alert> : null
               } 
               
 

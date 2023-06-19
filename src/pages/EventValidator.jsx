@@ -113,13 +113,15 @@ const rows = eventSignupList.map((eventSignup) => {
 sx={{margin: 'auto', display: 'block', marginTop: '20px', marginBottom: '20px', color: 'white', width: '50%'}}
 onClick={() => {
     console.log(eventSignupList);
+    if(selectedIDs.length === 0){
+        setError('Please select at least one user to validate');
+        return;
+    }
     selectedIDs.forEach((id) => {
         const signupInfo = eventSignupList.find((eventSignup) => eventSignup.id === id);
         const eventPoints = signupInfo.event.pointsEarned
         eventValidate(id, signupInfo.userID, eventPoints);
-        
-
-        
+             
     });
 }}>Validate Selected User(s)</Button>
 

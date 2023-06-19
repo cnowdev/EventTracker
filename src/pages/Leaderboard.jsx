@@ -1,14 +1,87 @@
-import React, { useEffect } from 'react'
-import { DataGrid } from '@mui/x-data-grid';
+import React, { useEffect, useState } from 'react'
+import { DataGrid, renderActionsCell } from '@mui/x-data-grid';
 import Box from '@mui/material/Box';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, getDoc, doc, writeBatch } from 'firebase/firestore';
+import { Button } from '@mui/material';
+import { UserAuth } from '../contexts/AuthContext';
+import Modal from '@mui/material/Modal';
+import Typography from '@mui/material/Typography';
+import { TextField } from '@mui/material';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import Alert from '@mui/material/Alert';
 
 export default function Leaderboard() {
+    const {user} = UserAuth();  
+    const [admin, setAdmin] = useState(false);
     const [rows, setRows] = React.useState([]);
-    //const rows = [{id: 1, col1: 'Hello', col2: 'World', col3: 30}, {id: 2, col1: 'XGrid', col2: 'is Awesome', col3: 40}, {id: 3, col1: 'Material-UI', col2: 'is Amazing', col3: 50}];
-    const columns = [{field: 'col1', headerClassName: 'columncolor', headerName: 'Name', width: 300}, {field: 'col2', headerClassName: 'columncolor', headerName: 'GPA', width: 300}, {field: 'col3', headerClassName: 'columncolor', headerName: 'Points', width: 100}];
+    const [selectedRow, setSelectedRow] = useState(null);
     
+    //const rows = [{id: 1, col1: 'Hello', col2: 'World', col3: 30}, {id: 2, col1: 'XGrid', col2: 'is Awesome', col3: 40}, {id: 3, col1: 'Material-UI', col2: 'is Amazing', col3: 50}];
+    const columns = [{field: 'col1', headerClassName: 'columncolor', headerName: 'Name', width: 300}, 
+    {field: 'col2', headerClassName: 'columncolor', headerName: 'GPA', width: 300}, 
+    {field: 'col3', headerClassName: 'columncolor', headerName: 'Points', width: 100},
+  ]
+    
+
+  //user editor variables
+  const [name, setName] = useState('');
+  const [gpa, setGpa] = useState('');
+  const [points, setPoints] = useState('');
+  const [grade, setGrade ] = useState('');
+  const [adminStatus, setAdminStatus] = useState(false);
+  const [currentID, setCurrentID] = useState(''); //current editing user id
+
+  //user editor error success and loading vars:
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(''); 
+
+
+  //Modal stuff
+  const [open, setOpen] = React.useState(false);
+  const handleOpen = () => {
+    setError('');
+    setSuccess('');
+    setLoading('');
+    setOpen(true);
+  }
+  const handleClose = () => setOpen(false);
+
+  const modalStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 1000,
+    height: 500,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if(!name || !gpa || !points || !grade || gpa < 0 || gpa > 4 || grade < 9 || grade > 12 || points < 0){
+      setError('empty or invalid input(s)');
+    } else{
+      try{ 
+        setError('');
+        setLoading("Loading... please don't refresh your browser");
+        updateUserData();
+        setLoading('');
+        setSuccess("User data updated successfully!");
+      } catch(e){
+        setError(e.message);
+      }
+    }
+
+
+
+  }
 
 
 
@@ -22,10 +95,52 @@ export default function Leaderboard() {
           id: doc.id,
           col1: doc.data().name,
           col2: doc.data().gpa,
-          col3: doc.data().points,
+          col3: parseInt(doc.data().points),
         }
       }));
     }
+
+    const getUserData = async(id) => {
+      setCurrentID(id);
+      const userDoc = await getDoc(doc(db, 'users', id));
+      setName(userDoc.data().name);
+      setGpa(userDoc.data().gpa);
+      setPoints(userDoc.data().points);
+      setGrade(userDoc.data().grade);
+      setAdminStatus(userDoc.data().admin);      
+    }
+    const batch = writeBatch(db);
+    const updateUserData = async() => {
+      if(currentID){
+        const userRef = doc(db, 'users', currentID);
+        console.log(name, gpa, points, grade, adminStatus);
+        console.log(currentID);
+        batch.update(userRef, {
+          name: name,
+          gpa: gpa,
+          points: points,
+          grade: grade,
+          admin: adminStatus,
+        });
+  
+        await batch.commit();
+      }else {
+        console.log('no row')
+      }
+    }
+
+
+    React.useEffect(() => {
+      const fetchAdminStatus = async() => {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        console.log(userDoc.data().admin);
+        setAdmin(userDoc.data().admin);
+      }
+      
+      fetchAdminStatus();
+      console.log(admin);
+    }, [user]);
+   
 
     useEffect(() => {
       getData();
@@ -65,6 +180,10 @@ export default function Leaderboard() {
   }}
   rows={rows}
   columns={columns}
+  onRowClick={(row) => {
+    setSelectedRow(row.id);
+  }
+  }
   initialState={{
     pagination: {
       paginationModel: { page: 0, pageSize: 20 },
@@ -73,6 +192,141 @@ export default function Leaderboard() {
   }}
 
 /> 
+
+{admin && <Button variant="contained" 
+sx={
+  {margin: 'auto', display: 'block', marginTop: '20px', marginBottom: '20px', color: 'white', width: '50%'}
+}
+onClick={() => {  
+  if(selectedRow){
+    getUserData(selectedRow);
+    handleOpen();
+  } else{
+    console.log('no row selected');
+  }
+}
+}>Edit Selected User</Button>}
+
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={modalStyle}>
+          <Typography id="modal-modal-title" variant="h4" component="h2">
+            User Editor
+          </Typography>
+          <Typography id="modal-modal-title" variant="h7" component="h2">
+            Currently Editing: {name}
+          </Typography>
+          <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
+              <TextField
+                error={!name}
+                margin="normal"
+                required
+                fullWidth
+                id="name"
+                label="Name"
+                name="name"
+                autoFocus
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                }}
+              />
+              <TextField
+                margin="normal"
+                error={!gpa}
+                required
+                name="GPA"
+                label="GPA"
+                type="number"
+                id="gpa"
+                value={gpa}
+                onChange={(e) => {
+                  setGpa(e.target.value)}
+                }
+              />
+              <TextField
+                sx={{ml: 2}}
+                margin="normal"
+                error={!points}
+                required
+                name="GPA"
+                label="Points"
+                type="number"
+                id="gpa"
+                value={points}
+                onChange={(e) => {
+                  setPoints(e.target.value)}
+                }
+              />
+             <TextField
+                margin="normal"
+                error={!grade}
+                required
+                name="Grade"
+                label="Grade"
+                type="number"
+                id="grade"
+                sx={{ml: 2}}
+                value={grade}
+                onChange={(e) => {setGrade(e.target.value)}}
+              />
+              <InputLabel> Admin? </InputLabel>
+              <Select
+
+                value={adminStatus}
+                onChange={(e) => {
+                  setAdminStatus(e.target.value);
+                }
+                }
+                >
+                  <MenuItem value={true}>Yes</MenuItem>
+                  <MenuItem value={false}>No</MenuItem>
+                </Select>
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Edit
+              </Button>
+
+              {error?
+              <Alert 
+              variant='filled'
+              severity='error'
+              sx={{mt:2}}
+              >{error}</Alert> : null
+              } 
+
+              {success?
+              <Alert 
+              variant='filled'
+              severity='success'
+              sx={{mt:2}}
+              >{success}</Alert> : null
+              } 
+              {loading?
+              <Alert 
+              variant='filled'
+              severity='info'
+              sx={{mt:2}}
+              >{loading}</Alert> : null
+              } 
+              
+
+
+
+            </Box>
+
+        </Box>
+      </Modal>
+
 </Box>
 
 

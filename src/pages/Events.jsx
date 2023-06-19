@@ -3,7 +3,7 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
-import { Button, CardActionArea, CardActions } from '@mui/material';
+import { Badge, Button, CardActionArea, CardActions } from '@mui/material';
 import Grid from '@mui/material/Grid';
 
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { db } from '../firebase';
 import { collection, query, where, getDocs, getDoc, doc, updateDoc, increment, addDoc, QuerySnapshot } from 'firebase/firestore';
 import { UserAuth } from '../contexts/AuthContext';
+import { PickersDay } from '@mui/x-date-pickers';
 
 
 
@@ -71,6 +72,23 @@ export default function Events() {
     setEvents(querySnapshot.docs);
   }
 
+  const dateArray = [new Date('2023-06-20')]
+
+  const ServerDay = (props) => {
+    const {day, ...other} = props;
+
+    const isSelected = dateArray.indexOf(props.day.date()) >= 0;
+    return (
+      <Badge
+        key={props.day.toString()}
+        overlap='circular'
+        badgeContent={isSelected? '🤓': undefined}>
+          <PickersDay {...other} day={day}/>
+        </Badge>
+    )
+  }
+
+
   const useEvents = events.map((doc) => {
       let registerStatus = registeredEvents.includes(doc.id);
       getCreatorInfo(doc.data().creator)
@@ -97,7 +115,6 @@ export default function Events() {
         <CardActions>
           <Button size="small" variant='contained' color='success' disabled={registerStatus? 'true' : ''} onClick={() => {
             setRegisteredEvents((prev) => [...prev, doc.id]);
-            addPoints(doc.data().pointsEarned);
             registerEvent(doc.id);
             }} >
             Register
@@ -107,6 +124,7 @@ export default function Events() {
         )
 
   })
+
 
 
 useEffect(() => {
@@ -125,7 +143,13 @@ getRegisteredEvents();
     <Grid container>
       <Grid item sm={7}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-    <DateCalendar component='div' value={calendarValue} onChange={(newVal) => {
+
+
+
+    <DateCalendar component='div' 
+    value={calendarValue}
+
+    onChange={(newVal) => {
       setCalendarValue(newVal);
       updateCards(newVal);
 
