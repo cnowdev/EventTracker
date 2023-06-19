@@ -63,5 +63,11 @@ export const secondaryListItems = (
       </ListItemIcon>
       <ListItemText primary="Prize Creator" />
     </ListItemButton>
+    <ListItemButton component={Link} to="/eventvalidator">
+      <ListItemIcon>
+        <AssignmentIcon />
+      </ListItemIcon>
+      <ListItemText primary="Event Validator" />
+    </ListItemButton>
   </React.Fragment>
 );
