@@ -111,6 +111,7 @@ export default function PrizeCreator() {
                   <MenuItem value={'Food'}>Food</MenuItem>
                   <MenuItem value={'School Spirit'}>School Spirit</MenuItem>
                   <MenuItem value={'School'}>School</MenuItem>
+                  <MenuItem value={'Other'}>Other</MenuItem>
 
                 </Select>
                 <Button
