@@ -39,6 +39,7 @@ export default function Leaderboard() {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(''); 
 
+  const[warning, setWarning] = useState('');
 
   //Modal stuff
   const [open, setOpen] = React.useState(false);
@@ -129,6 +130,8 @@ export default function Leaderboard() {
       }
     }
 
+    
+
 
     React.useEffect(() => {
       const fetchAdminStatus = async() => {
@@ -202,7 +205,7 @@ onClick={() => {
     getUserData(selectedRow);
     handleOpen();
   } else{
-    console.log('no row selected');
+    setWarning('Please select a user to edit');
   }
 }
 }>Edit Selected User</Button>}
@@ -253,10 +256,10 @@ onClick={() => {
                 margin="normal"
                 error={!points}
                 required
-                name="GPA"
+                name="Points"
                 label="Points"
                 type="number"
-                id="gpa"
+                id="points"
                 value={points}
                 onChange={(e) => {
                   setPoints(e.target.value)}
@@ -326,7 +329,13 @@ onClick={() => {
 
         </Box>
       </Modal>
-
+      {warning?
+              <Alert 
+              variant='filled'
+              severity='warning'
+              sx={{mt:2}}
+              >{warning}</Alert> : null
+              }  
 </Box>
 
 
