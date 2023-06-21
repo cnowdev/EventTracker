@@ -44,7 +44,7 @@ export default function UserCreator() {
             setSuccess('');
             setLoading("Creating User... Please don't refresh the page.")
             const createUserAccount = httpsCallable(functions, 'createUserAccount');
-            createUserAccount({email: email, password: password, uid: user.uid, gpa: GPA, grade: grade, name: name, admin: admin}).then((result) => {
+            createUserAccount({email: email, password: password, uid: user.uid, gpa: parseInt(GPA), grade: parseInt(grade), name: name, admin: admin}).then((result) => {
               console.log(result.data);
               setLoading('');
               if(result.data.status === 'complete'){            

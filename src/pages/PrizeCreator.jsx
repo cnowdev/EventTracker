@@ -108,10 +108,12 @@ export default function PrizeCreator() {
                 error={!prizeType}
                 onChange={(e) => setPrizeType(e.target.value)}
                 >
-                  <MenuItem value={'Food'}>Food</MenuItem>
-                  <MenuItem value={'School Spirit'}>School Spirit</MenuItem>
-                  <MenuItem value={'School'}>School</MenuItem>
-                  <MenuItem value={'Other'}>Other</MenuItem>
+                  <MenuItem value={'r'}>Random</MenuItem>
+                  <MenuItem value={'r9'}>Random 9th Grader</MenuItem>
+                  <MenuItem value={'r10'}>Random 10th Grader</MenuItem>
+                  <MenuItem value={'r11'}>Random 11th Grader</MenuItem>
+                  <MenuItem value={'r12'}>Random 12th Grader</MenuItem>
+                  <MenuItem value={'mostpoints'}>Most Points</MenuItem>
 
                 </Select>
                 <Button

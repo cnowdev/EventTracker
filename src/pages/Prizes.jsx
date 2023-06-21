@@ -16,6 +16,7 @@ import Select from '@mui/material/Select';
 import Alert from '@mui/material/Alert';
 import MenuItem from '@mui/material/MenuItem';
 import { Label } from '@mui/icons-material';
+import PrizeAwarder from '../components/PrizeAwarder';
 
 export default function Prizes() {
 
@@ -23,7 +24,9 @@ const {user} = UserAuth();
 const [admin, setAdmin ] = useState(false);
 
  const [prizes, setPrizes] = useState([]);
- const [creatorInfo, setCreatorInfo] = useState({});
+ 
+
+const [allUsers, setAllUsers] = useState([]);
 
 //prizeEditor vars
  const [prizeID, setPrizeID] = useState('');
@@ -46,6 +49,15 @@ const [admin, setAdmin ] = useState(false);
   setOpen(true);
 }
 const handleClose = () => setOpen(false);
+
+
+//Prize awarder modal vars
+const [secondaryOpen, setSecondaryOpen] = React.useState(false);
+const handleSecondaryOpen = () => {
+ setSecondaryOpen(true);
+}
+const handleSecondaryClose = () => setSecondaryOpen(false);
+
 
  const handleSubmit = (event) => {
   event.preventDefault();
@@ -102,7 +114,7 @@ const modalStyle = {
 
 const getCreatorInfo = async(creatorRef) => {
   const q = await getDoc(creatorRef);
-  setCreatorInfo(q.data());
+  return q.data();
 }
 
   const getPrizes = async() => {
@@ -111,11 +123,18 @@ const getCreatorInfo = async(creatorRef) => {
     setPrizes(querySnapshot.docs);
   }
 
+  const getAllUsers = async() => {
+    const q = query(collection(db, 'users'));
+    const querySnapshot = await getDocs(q);
+    setAllUsers(querySnapshot.docs);
+  }
+
   let initialized = false;
   useEffect(() => {
     if(!initialized){
       initialized = true;
       getPrizes();
+      getAllUsers();
 
     }
 
@@ -135,8 +154,9 @@ const getCreatorInfo = async(creatorRef) => {
 
 
   const usePrizes = prizes.map((prize) => {
-    getCreatorInfo(prize.data().creator);
-    return <Grid item xs={4}>
+    
+    return (
+    <Grid item xs={4}>
     <Item>
     <Card sx={{ maxWidth: 345 }}>
       <CardMedia 
@@ -150,10 +170,10 @@ const getCreatorInfo = async(creatorRef) => {
             {prize.data().name}
           </Typography>
           <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1, fontWeight: 'bold'}}>
-            Created by: {creatorInfo.name}
+            Created by: {allUsers.length > 0? allUsers.find(e => e.id === prize.data().creator.id).data().name : 'couldn not fetch'}
           </Typography>
-          <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1}}>
-            Winner: {prize.data().winner? prize.data().winner : "No winner yet"}
+          <Typography variant="body3" color={prize.data().winner && allUsers.length > 0? "green" : "text.secondary"} component="div" gutterBottom sx={{mb: 1}}>
+            Winner: {prize.data().winner && allUsers.length > 0? allUsers.find(e => e.id === prize.data().winner.id).data().name : "No winner yet"}
           </Typography>
           <Typography variant="body1" color="text.secondary">
             {prize.data().description}
@@ -169,6 +189,8 @@ const getCreatorInfo = async(creatorRef) => {
             setPrizeImageURL(prize.data().imageURL);
             setPrizeType(prize.data().prizeType);
             handleOpen();
+            
+            console.log(allUsers.find(e => e.id === prize.data().creator.id).data().name);
           }
           }
           > Edit Prize </Button>}
@@ -179,6 +201,7 @@ const getCreatorInfo = async(creatorRef) => {
     </Card>
     </Item>
   </Grid>
+    )
   });
 
   return (
@@ -186,7 +209,7 @@ const getCreatorInfo = async(creatorRef) => {
    <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
     {usePrizes}
    </Grid>
-
+    
    <Modal
         open={open}
         onClose={handleClose}
@@ -250,10 +273,12 @@ const getCreatorInfo = async(creatorRef) => {
                 label="Prize Type"
                 onChange={(e) => setPrizeType(e.target.value)}
                 >
-                  <MenuItem value={'Food'}>Food</MenuItem>
-                  <MenuItem value={'School'}>School</MenuItem>
-                  <MenuItem value={'School Spirit'}>School Spirit</MenuItem>
-                  <MenuItem value={'Other'}>Other</MenuItem>
+                  <MenuItem value={'r'}>Random</MenuItem>
+                  <MenuItem value={'r9'}>Random 9th Grader</MenuItem>
+                  <MenuItem value={'r10'}>Random 10th Grader</MenuItem>
+                  <MenuItem value={'r11'}>Random 11th Grader</MenuItem>
+                  <MenuItem value={'r12'}>Random 12th Grader</MenuItem>
+                  <MenuItem value={'mostpoints'}>Most Points</MenuItem>
                 </Select>
           
                 <Button
@@ -288,9 +313,40 @@ const getCreatorInfo = async(creatorRef) => {
               >{loading}</Alert> : null
               } 
               
+
+              
           </Box>
+          
       </Box>
    </Modal>
+
+   {admin &&
+     <Button 
+     variant='contained' 
+     color='info'
+     onClick={handleSecondaryOpen}
+     sx={{
+      mb:0,
+      mt: 3,
+      ml: 40,
+      width: '50%'
+     }}> End Quarter and assign prizes </Button>
+}
+<Modal
+        open={secondaryOpen}
+        onClose={handleSecondaryClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+>
+      <Box sx={modalStyle}>
+
+        <PrizeAwarder/>
+
+      </Box>
+        </Modal>
+
+
+
   </div>
   )
 }
