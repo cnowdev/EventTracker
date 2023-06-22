@@ -20,7 +20,7 @@ export default function EventValidator() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    const batch = writeBatch(db);
+
 
     const getEventSignups = async () => {
         const q = query(collection(db, 'eventsignups'), where("verified", "==", false));
@@ -49,7 +49,7 @@ export default function EventValidator() {
 
     const eventValidate = async (eventSignupID, userID, points) => {
         try{
-
+            const batch = writeBatch(db);
             console.log(eventSignupID, userID, points);
             //update user points
             const userRef = doc(db, 'users', userID);

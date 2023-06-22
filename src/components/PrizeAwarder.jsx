@@ -62,8 +62,10 @@ export default function PrizeAwarder() {
 
 
     const awardPrizes = async() => {
+
+        try{
         if(winnablePrizes.length === 0){
-            console.log('empty array');
+            setError('There are no prizes to award!');
             return;
         }
         const batch = writeBatch(db);
@@ -81,7 +83,10 @@ export default function PrizeAwarder() {
                 batch.commit();
             }
         });
- 
+        setSuccess('Prizes awarded successfully!');
+    }catch(e){
+        setError('Error trying to award prizes: ' + e.message);
+    }
     }
 
     let initialized = false;

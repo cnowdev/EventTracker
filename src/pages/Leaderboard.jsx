@@ -91,7 +91,8 @@ export default function Leaderboard() {
       const querySnapshot = await getDocs(q);
 
       console.log(querySnapshot);
-      setRows(querySnapshot.docs.map(doc => {        
+      setRows(querySnapshot.docs.map(doc => {   
+      
         return {
           id: doc.id,
           col1: doc.data().name,
