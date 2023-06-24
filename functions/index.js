@@ -61,6 +61,76 @@ exports.createUserAccount = onCall((request) => {
     
 });
 
+
+exports.importUserData = onCall((request) => {
+    const writeBatch = firestore.batch();
+    const userData = request.data.userData;
+    let itemsProcessed = 0;
+
+    const createUserPromise = userData.map((user) => {
+        return auth.createUser({
+            email: user.email,
+            password: user.password
+        })
+        .then((userRecord) => {
+            writeBatch.set(firestore.collection('users').doc(userRecord.uid), {
+                admin: user.admin,
+                gpa: parseFloat(user.gpa),
+                grade: parseInt(user.grade),
+                name: user.name,
+                points: parseInt(user.points)
+            });
+        });
+    });
+
+    return Promise.all(createUserPromise).then(() => {
+        return writeBatch.commit();
+    }).then(() => {
+        return { status: 'complete', message: 'Awesome!'}
+    }).catch((e) => {
+        return {status: 'error', message: 'error:' + e.message}
+    });
+
+
+    /*
+    
+    const writeBatch = firestore.batch();
+    const userData = request.data.userData;
+    let response;
+    let itemsProcessed = 0;
+    return userData.forEach((user, index, array) => {
+        return auth.createUser({
+            email: user.email,
+            password: user.password
+        }).then((userRecord) => {
+                return writeBatch.set(firestore.collection('users').doc(userRecord.uid), {
+                admin: user.admin,
+                gpa: parseInt(user.gpa),
+                grade: parseInt(user.grade),
+                name: user.name,
+                points: user.points
+            });
+        }).then(async() => {
+            itemsProcessed++;
+            if(itemsProcessed === array.length){
+                try{
+                    await writeBatch.commit();
+                    
+                    return {status: 'complete', message: 'Lets GOO!'}
+                }catch(e){
+                    return {status: 'error', message: 'error :('}
+                }
+                
+            }
+        });
+        
+        
+    });
+
+
+    */
+})
+
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 

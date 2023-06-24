@@ -84,14 +84,27 @@ export default function Home() {
     }
   }
 
+
+
+
+  React.useEffect(() => {
+    if(user.uid){
+      
+      getRegisteredEventIDs();
+      getPrizesWon();
+      getCurrentUserData();
+    }
+
+  }, [user]);
+
+
+
   let initialized = false;
   useEffect(() => {
     if(!initialized){
       initialized = true;
       getAllCurrentEvents();
-      getRegisteredEventIDs();
-      getPrizesWon();
-      getCurrentUserData();
+
     }
 
   }, []);
@@ -178,7 +191,7 @@ export default function Home() {
     </Grid>
     <Typography variant='h4' sx={{fontWeight: 'bold', mb: 2, mt: 2}}>Your Prizes</Typography>
       <Grid container spacing={3}>
-      {usePrizes}
+      {usePrizes.length > 0? usePrizes : <Typography variant="body1" color="text.secondary" sx={{mt: 2, ml: 4}}> You haven't won any prizes </Typography>}
     </Grid>
     </div>
   )

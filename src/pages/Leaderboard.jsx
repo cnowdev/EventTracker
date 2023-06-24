@@ -3,7 +3,7 @@ import { DataGrid, renderActionsCell } from '@mui/x-data-grid';
 import Box from '@mui/material/Box';
 import { db } from '../firebase';
 import { collection, getDocs, query, orderBy, getDoc, doc, writeBatch } from 'firebase/firestore';
-import { Button } from '@mui/material';
+import { Button, Input } from '@mui/material';
 import { UserAuth } from '../contexts/AuthContext';
 import Modal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
@@ -12,12 +12,16 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Alert from '@mui/material/Alert';
+import Papa from 'papaparse';
+import IosShareIcon from '@mui/icons-material/IosShare';
 
 export default function Leaderboard() {
     const {user} = UserAuth();  
     const [admin, setAdmin] = useState(false);
     const [rows, setRows] = React.useState([]);
+    const [allUsers, setAllUsers] = useState([]);
     const [selectedRow, setSelectedRow] = useState(null);
+
     
     //const rows = [{id: 1, col1: 'Hello', col2: 'World', col3: 30}, {id: 2, col1: 'XGrid', col2: 'is Awesome', col3: 40}, {id: 3, col1: 'Material-UI', col2: 'is Amazing', col3: 50}];
     const columns = [{field: 'col1', headerClassName: 'columncolor', headerName: 'Name', width: 300}, 
@@ -91,6 +95,7 @@ export default function Leaderboard() {
       const querySnapshot = await getDocs(q);
 
       console.log(querySnapshot);
+      setAllUsers(querySnapshot.docs.map(doc => doc.data()));
       setRows(querySnapshot.docs.map(doc => {   
       
         return {
@@ -135,14 +140,17 @@ export default function Leaderboard() {
 
 
     React.useEffect(() => {
-      const fetchAdminStatus = async() => {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        console.log(userDoc.data().admin);
-        setAdmin(userDoc.data().admin);
+      if(user.uid){
+        const fetchAdminStatus = async() => {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          console.log(userDoc.data().admin);
+          setAdmin(userDoc.data().admin);
+        }
+        
+        fetchAdminStatus();
+        console.log(admin);
       }
-      
-      fetchAdminStatus();
-      console.log(admin);
+
     }, [user]);
    
 
@@ -196,6 +204,16 @@ export default function Leaderboard() {
   }}
 
 /> 
+{admin && <Button sx={{ml: 81, mt: 2}}variant="contained" color='success' startIcon={<IosShareIcon />} onClick={() => {
+            const csvData = Papa.unparse(allUsers);
+            const csvBlob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            window.open(URL.createObjectURL(csvBlob));
+}}>Export User Data</Button>}
+
+
+
+
+
 
 {admin && <Button variant="contained" 
 sx={

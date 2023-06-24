@@ -123,15 +123,28 @@ export default function Dashboard({children}) {
     setOpen(!open);
   };
 
+  
   React.useEffect(() => {
-    const fetchAdminStatus = async() => {
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      setAdmin(userDoc.data().admin);
+    if(user.uid){
+      const fetchAdminStatus = async() => {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        setAdmin(userDoc.data().admin);
+      }
+      
+      fetchAdminStatus();
+      console.log(admin);
     }
-    
-    fetchAdminStatus();
-    console.log(admin);
+
   }, [user]);
+
+
+  const dashboardHeaderColor = (val) => {
+    if(val == 'Event Creator' || val == 'User Creator' || val == 'Prize Creator' || val == 'Event Validator'){
+      return true;
+    } else{ 
+      return false
+    }
+  }
  
 
   return (
@@ -142,7 +155,7 @@ export default function Dashboard({children}) {
           <Toolbar
             sx={{
               pr: '24px',
-              backgroundColor: admin? 'red' : null // keep right padding when drawer closed
+              backgroundColor: dashboardHeaderColor(pageName(location.pathname.split('/')[1].charAt(0).toUpperCase() + location.pathname.split('/')[1].slice(1)))? '#b70000' : null // keep right padding when drawer closed
             }}
           >
             <IconButton
