@@ -73,8 +73,10 @@ exports.importUserData = onCall((request) => {
             password: user.password
         })
         .then((userRecord) => {
+            let userAdminStatus = false;
+            if(user.admin === 'true') { userAdminStatus = true;}
             writeBatch.set(firestore.collection('users').doc(userRecord.uid), {
-                admin: user.admin,
+                admin: userAdminStatus,
                 gpa: parseFloat(user.gpa),
                 grade: parseInt(user.grade),
                 name: user.name,

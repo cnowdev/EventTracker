@@ -9,7 +9,8 @@ import dayjs, {Dayjs} from 'dayjs';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { db } from '../firebase';
-import { doc, setDoc, addDoc, collection } from "firebase/firestore"; 
+import { doc, setDoc, addDoc, collection, getDoc } from "firebase/firestore"; 
+import {Navigate} from 'react-router-dom'
 
 
 
@@ -20,7 +21,7 @@ export default function EventCreator() {
 
     //this is needed for verifying if the user is an admin (and for the 'creator' field)
     const {user} = UserAuth();
-    const currentUserRef = doc(db, 'users', user.uid);
+    const [currentUserDoc, setCurrentUserDoc] = useState(null);
     
     //form fields
     const [description, setDescription] = useState('');
@@ -29,8 +30,36 @@ export default function EventCreator() {
     const [time, setTime] = useState(dayjs());
     const [type, setType] = useState('');
 
+
+
+    //get user admin status
+    React.useEffect(() => {
+      if(user.uid){
+        const fetchUserDoc = async() => {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          setCurrentUserDoc(userDoc);
+        }
+        
+        fetchUserDoc();
+        console.log(currentUserDoc);
+      }
+  
+    }, [user]);
+
+
+
+
+
     //add event to firestore
     const addEvent = async () => {
+      //const userDoc = await getDoc(currentUserRef);
+      const userData = currentUserDoc.data();
+      const isAdmin = userData.isAdmin;
+
+      if(!isAdmin) {
+        setError('You are not an admin!');
+        return;
+      }
       try{
       await addDoc(collection(db, "events"), {
         creator: currentUserRef,
@@ -65,6 +94,7 @@ export default function EventCreator() {
 
   return (
     <div>
+      {(currentUserDoc && !currentUserDoc.data().isAdmin)? <Navigate to='/' />: null}
     <Typography component="h1" variant="h5">
         Create an Event
     </Typography>

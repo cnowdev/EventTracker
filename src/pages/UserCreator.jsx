@@ -6,7 +6,10 @@ import { auth, functions } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { UserAuth } from '../contexts/AuthContext';
 import IosShareIcon from '@mui/icons-material/IosShare';
+import { getDoc, doc } from 'firebase/firestore';
+import { db } from '../firebase';
 import Papa from 'papaparse';
+import { Navigate } from 'react-router-dom';
 
 export default function UserCreator() {
     const [error, setError] = useState('');
@@ -14,6 +17,8 @@ export default function UserCreator() {
     const [loading, setLoading] = useState('');
     const {user} = UserAuth();
   
+
+    const[currentUserDoc, setCurrentUserDoc] = useState(null);
 
     //form fields
     const [email, setEmail] = useState('');
@@ -32,6 +37,20 @@ export default function UserCreator() {
           /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         );
     };
+    
+    React.useEffect(() => {
+      if(user.uid){
+        const fetchUserDoc = async() => {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          setCurrentUserDoc(userDoc);
+        }
+        
+        fetchUserDoc();
+        console.log(currentUserDoc);
+      }
+  
+    }, [user]);
+
     
         const handleSubmit = async (event) => {
         event.preventDefault();
@@ -108,6 +127,10 @@ const [fileData, setFileData] = useState(null);
       };
 
       const userDataSubmit = () => {
+        if(!currentUserDoc.data().admin){
+          setError('You do not have permission to do this.');
+          return;
+        }
         if(!fileData){
           setFileError('No file data');
           return;
@@ -145,6 +168,7 @@ const [fileData, setFileData] = useState(null);
  
   return (
     <div>
+        {(currentUserDoc && !currentUserDoc.data().isAdmin)? <Navigate to="/" /> : null}
         <Typography component="h1" variant="h5">
             Create a User
         </Typography>

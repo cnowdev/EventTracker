@@ -9,7 +9,8 @@ import dayjs, {Dayjs} from 'dayjs';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { db } from '../firebase';
-import { doc, setDoc, addDoc, collection } from "firebase/firestore"; 
+import { doc, setDoc, addDoc, collection, getDoc } from "firebase/firestore";
+import { Navigate } from 'react-router-dom'; 
 
 
 export default function PrizeCreator() {
@@ -18,7 +19,7 @@ export default function PrizeCreator() {
 
     //this is needed for verifying if the user is an admin (and for the 'creator' field)
     const {user} = UserAuth();
-    const currentUserRef = doc(db, 'users', user.uid);
+    const [currentUserDoc, setCurrentUserDoc] = useState(null);
 
     //form fields
     const [description, setDescription] = useState('');
@@ -27,11 +28,10 @@ export default function PrizeCreator() {
     const [prizeType, setPrizeType] = useState('');
 
     //add prize to firestore
-
     const addPrize = async () => {
         try{
             await addDoc(collection(db, "prizes"), {
-                creator: currentUserRef,
+                creator: currentUserDoc.id,
                 description: description,
                 name: name,
                 imageURL: imageURL,
@@ -57,8 +57,23 @@ export default function PrizeCreator() {
         }
     }
 
+    //get the current user data when `user` is defined
+    React.useEffect(() => {
+      if(user.uid){
+        const fetchUserDoc = async() => {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          setCurrentUserDoc(userDoc);
+        }
+        
+        fetchUserDoc();
+        console.log(currentUserDoc);
+      }
+  
+    }, [user]);
+
   return (
     <div>
+        {(currentUserDoc && !currentUserDoc.data().isAdmin)? <Navigate to="/" /> : null}
         <Typography component="h1" variant="h5">
             Create a Prize
         </Typography>

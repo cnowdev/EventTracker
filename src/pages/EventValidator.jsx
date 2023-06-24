@@ -11,6 +11,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { db } from '../firebase';
 import { doc, setDoc, addDoc, collection, query, where, getDocs, getDoc, runTransaction, writeBatch, increment } from "firebase/firestore"; 
 import { DataGrid } from '@mui/x-data-grid';
+import { Navigate } from 'react-router-dom';
 
 
 export default function EventValidator() {
@@ -20,6 +21,8 @@ export default function EventValidator() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    const [currentUserDoc, setCurrentUserDoc] = useState(null);
+    const {user} = UserAuth();
 
 
     const getEventSignups = async () => {
@@ -48,6 +51,11 @@ export default function EventValidator() {
     }
 
     const eventValidate = async (eventSignupID, userID, points) => {
+
+        if(currentUserDoc && !currentUserDoc.data().isAdmin) {
+            setError('You are not an admin!');
+        }
+
         try{
             const batch = writeBatch(db);
             console.log(eventSignupID, userID, points);
@@ -75,7 +83,24 @@ useEffect(() => {
         getEventSignupData();
     }
 
-}, [])
+}, []);
+
+
+
+//get current user
+React.useEffect(() => {
+    if(user.uid){
+      const fetchUserDoc = async() => {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        setCurrentUserDoc(userDoc);
+      }
+      
+      fetchUserDoc();
+      console.log(currentUserDoc);
+    }
+
+  }, [user]);
+
 
 const rows = eventSignupList.map((eventSignup) => {
     return {
@@ -88,6 +113,8 @@ const rows = eventSignupList.map((eventSignup) => {
 
   return (
     <div>
+
+    {(currentUserDoc && !currentUserDoc.data().isAdmin)? <Navigate to="/" /> : null}
     <DataGrid
   checkboxSelection
   sx={{
