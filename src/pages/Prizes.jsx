@@ -153,6 +153,7 @@ const getCreatorInfo = async(creatorRef) => {
 
 
 
+
   const usePrizes = prizes.map((prize) => {
     
     return (
@@ -287,7 +288,7 @@ const getCreatorInfo = async(creatorRef) => {
                 variant="contained"
                 sx={{ mt: 3, mb: 2 }}
                 >
-                Edit
+                Save
                 </Button>
 
                 {error?
