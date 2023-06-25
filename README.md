@@ -15,4 +15,4 @@ A Project for FBLA NLC 2023.
    - points (number): 0
    - name (string): admin
 
-4. Complete! Sign in as the user you've created and create student accounts!
+4. Complete! navigate to the directory, then run `npm run dev` in your terminal to start the app. If you wish to run a emulator, run `firebase emulators:start` Sign in as the user you've created and create student accounts!
