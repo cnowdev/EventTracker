@@ -13,6 +13,7 @@ import EventCreator from './pages/EventCreator'
 import PrizeCreator from './pages/PrizeCreator'
 import EventValidator from './pages/EventValidator'
 import TestPage from './pages/TestPage'
+import FAQ from './pages/FAQ'
 
 
 function App() {
@@ -86,6 +87,14 @@ function App() {
             </Dashboard>
           </ProtectedRoute>
         } /> 
+        <Route path="/faq" element={
+          <ProtectedRoute>
+            <Dashboard>
+              <FAQ/>
+            </Dashboard>
+          </ProtectedRoute>
+        } />  
+
       </Routes>
       
       </div>

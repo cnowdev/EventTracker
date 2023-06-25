@@ -96,6 +96,8 @@ export default function Dashboard({children}) {
 
   const pageName = (val) => {
     switch(val){
+      case 'Faq':
+        return 'FAQ';
       case 'Eventcreator':
         return 'Event Creator';
       case 'Usercreator':

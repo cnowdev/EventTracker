@@ -142,6 +142,9 @@ export default function Home() {
             <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1}}>
               {eventDoc.data().time.toDate().toLocaleString()}
             </Typography>
+            <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1}}>
+              Points Awarded: {eventDoc.data().pointsEarned}
+            </Typography>
             <Typography variant="body1" color="text.secondary">
               {eventDoc.data().description}
             </Typography>

@@ -25,7 +25,7 @@ export default function Leaderboard() {
     
     //const rows = [{id: 1, col1: 'Hello', col2: 'World', col3: 30}, {id: 2, col1: 'XGrid', col2: 'is Awesome', col3: 40}, {id: 3, col1: 'Material-UI', col2: 'is Amazing', col3: 50}];
     const columns = [{field: 'col1', headerClassName: 'columncolor', headerName: 'Name', width: 300}, 
-    {field: 'col2', headerClassName: 'columncolor', headerName: 'GPA', width: 300}, 
+    {field: 'col2', headerClassName: 'columncolor', headerName: 'Grade', width: 300}, 
     {field: 'col3', headerClassName: 'columncolor', headerName: 'Points', width: 100},
   ]
     
@@ -96,12 +96,15 @@ export default function Leaderboard() {
 
       console.log(querySnapshot);
       setAllUsers(querySnapshot.docs.map(doc => doc.data()));
-      setRows(querySnapshot.docs.map(doc => {   
+      setRows(querySnapshot.docs.flatMap(doc => {   
+        if(doc.data().admin){
+          return [];
+        }
       
         return {
           id: doc.id,
           col1: doc.data().name,
-          col2: doc.data().gpa,
+          col2: doc.data().grade,
           col3: parseInt(doc.data().points),
         }
       }));
@@ -124,9 +127,9 @@ export default function Leaderboard() {
         console.log(currentID);
         batch.update(userRef, {
           name: name,
-          gpa: gpa,
-          points: points,
-          grade: grade,
+          gpa: parseFloat(gpa),
+          points: parseInt(points),
+          grade: parseInt(grade),
           admin: adminStatus,
         });
   
@@ -259,7 +262,7 @@ onClick={() => {
               />
               <TextField
                 margin="normal"
-                error={!gpa}
+                error={!gpa || gpa < 0 || gpa > 4? true : false}
                 required
                 name="GPA"
                 label="GPA"
@@ -286,7 +289,7 @@ onClick={() => {
               />
              <TextField
                 margin="normal"
-                error={!grade}
+                error={!grade || grade < 9 || grade > 12? true : false}
                 required
                 name="Grade"
                 label="Grade"

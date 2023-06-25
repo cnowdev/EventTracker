@@ -182,6 +182,9 @@ export default function Events() {
             <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1}}>
               {doc.data().time.toDate().toLocaleString()}
             </Typography>
+            <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1, color: 'green'}}>
+              Points Awarded: {doc.data().pointsEarned}
+            </Typography>
             <Typography variant="body1" color="text.secondary">
               {doc.data().description}
             </Typography>

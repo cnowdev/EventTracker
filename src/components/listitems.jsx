@@ -8,6 +8,7 @@ import EventIcon from '@mui/icons-material/Event';
 import HomeIcon from '@mui/icons-material/Home';
 import RedeemIcon from '@mui/icons-material/Redeem';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 import { Link } from 'react-router-dom';
 
 export const mainListItems = (
@@ -36,6 +37,12 @@ export const mainListItems = (
         <RedeemIcon/>
       </ListItemIcon>
       <ListItemText primary="Prizes" />
+    </ListItemButton>
+    <ListItemButton component={Link} to="/faq">
+      <ListItemIcon>
+        <QuestionMarkIcon/>
+      </ListItemIcon>
+      <ListItemText primary="FAQ" />
     </ListItemButton>
   </React.Fragment>
 );

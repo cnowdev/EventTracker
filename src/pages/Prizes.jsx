@@ -140,6 +140,25 @@ const getCreatorInfo = async(creatorRef) => {
 
   }, []);
 
+
+  const getPrizeTypeString = (prizeType) => {
+    switch(prizeType){
+      case 'r':
+        return 'Completely Random';
+      case 'r9':
+        return 'Random 9th Grader'
+      case 'r10':
+        return 'Random 10th Grader'
+      case 'r11':
+        return 'Random 11th Grader'
+      case 'r12':
+        return 'Random 12th Grader'
+      case 'mostpoints':
+        return 'Most Points'
+    }
+  }
+
+
   useEffect(() => {
     if(user) {
       const fetchAdminStatus = async() => {
@@ -172,6 +191,9 @@ const getCreatorInfo = async(creatorRef) => {
           </Typography>
           <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1, fontWeight: 'bold'}}>
             Created by: {allUsers.length > 0? allUsers.find(e => e.id === prize.data().creator.id).data().name : 'couldn not fetch'}
+          </Typography>
+          <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1}}>
+            Prize Type:  {getPrizeTypeString(prize.data().prizeType)}
           </Typography>
           <Typography variant="body3" color={prize.data().winner && allUsers.length > 0? "green" : "text.secondary"} component="div" gutterBottom sx={{mb: 1}}>
             Winner: {prize.data().winner && allUsers.length > 0? allUsers.find(e => e.id === prize.data().winner.id).data().name : "No winner yet"}
