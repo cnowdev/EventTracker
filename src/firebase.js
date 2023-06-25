@@ -8,12 +8,12 @@ import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDb_khCZmi4G7fsOWIH3-YMxUgpu8W0wew",
-  authDomain: "fbla23.firebaseapp.com",
-  projectId: "fbla23",
-  storageBucket: "fbla23.appspot.com",
-  messagingSenderId: "134644769398",
-  appId: "1:134644769398:web:5bdb3020f070b852c5f557"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.STORAGE_BUCKET,
+  messagingSenderId: process.env.MESSENGER_ID,
+  appId: process.env.FIREBASE_APP_ID,
 };
 
 // Initialize Firebase

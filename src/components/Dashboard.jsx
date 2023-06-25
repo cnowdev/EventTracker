@@ -157,7 +157,7 @@ export default function Dashboard({children}) {
           <Toolbar
             sx={{
               pr: '24px',
-              backgroundColor: dashboardHeaderColor(pageName(location.pathname.split('/')[1].charAt(0).toUpperCase() + location.pathname.split('/')[1].slice(1)))? '#b70000' : null // keep right padding when drawer closed
+              backgroundColor: dashboardHeaderColor(pageName(location.pathname.split('/')[1].charAt(0).toUpperCase() + location.pathname.split('/')[1].slice(1)))? '#b70000' : process.env.REACTAPP_DASHBOARD_COLOR // keep right padding when drawer closed
             }}
           >
             <IconButton
