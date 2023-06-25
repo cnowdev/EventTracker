@@ -49,6 +49,8 @@ export default function Events() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  //all users state
+  const [allUsers, setAllUsers] = useState([]);
 
   //event editor vars
   const [eventID, setEventID] = useState('');
@@ -62,6 +64,12 @@ export default function Events() {
     return date < new Date();
   }
 
+
+  const getAllUsers = async() => {
+    const q = query(collection(db, 'users'));
+    const querySnapshot = await getDocs(q);
+    setAllUsers(querySnapshot.docs);
+  }
 
   const handleSubmit = (event) => {
     
@@ -105,12 +113,13 @@ export default function Events() {
     }
 
 
-  const registerEvent = async(eventid) => {
+  const registerEvent = async(eventid, type) => {
     const eventRef = doc(db, 'events', eventid);
     await addDoc(collection(db, "eventsignups"), {
       event: eventRef,
       user: doc(db, 'users', user.uid),
-      verified: false
+      verified: false,
+      eventType: type
     });
     
   }
@@ -168,7 +177,7 @@ export default function Events() {
               {doc.data().name}
             </Typography>
             <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1, fontWeight: 'bold'}}>
-              Created by: {creatorInfo.name}
+              Created by: {allUsers.length > 0? allUsers.find(e => e.id === doc.data().creator.id).data().name : 'couldn not fetch'}
             </Typography>
             <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1}}>
               {doc.data().time.toDate().toLocaleString()}
@@ -181,7 +190,7 @@ export default function Events() {
         <CardActions>
           <Button size="small" variant='contained' color='success' disabled={registerStatus? 'true' : ''} onClick={() => {
             setRegisteredEvents((prev) => [...prev, doc.id]);
-            registerEvent(doc.id);
+            registerEvent(doc.id, doc.data().type);
             }} >
             Register
           </Button>
@@ -234,7 +243,7 @@ const modalStyle = {
 useEffect(() => {
 
 
-
+getAllUsers();
 
 }, []);
 

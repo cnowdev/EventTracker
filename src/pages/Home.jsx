@@ -23,16 +23,19 @@ import Alert from '@mui/material/Alert';
 
 
 export default function Home() {
-
   const [allEvents, setAllEvents] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [registeredEvents, setRegisteredEvents] = useState([]);
   const [prizesWon, setPrizesWon] = useState([]);
   const [loggedInUser, setLoggedInUser] = useState({});
   const { user } = UserAuth();
+  
+  const [commonRegisterType, setCommonRegisterType] = useState("");
 
-  const getAllCurrentEvents = async() => {
-    const q = query(collection(db, 'events'), where("time", ">=", new Date()));
+  const [useRecEvents, setUseRecEvents] = useState([]);
+
+  const getAllEvents = async() => {
+    const q = query(collection(db, 'events'));
     const querySnapshot = await getDocs(q);
     setAllEvents(querySnapshot.docs);
   }
@@ -51,7 +54,8 @@ export default function Home() {
           id: doc.id,
           userID: doc.data().user.id,
           eventID: doc.data().event.id,
-          verified: doc.data().verified}]);
+          verified: doc.data().verified,
+          eventType: doc.data().eventType}]);
       }
 
     })
@@ -84,13 +88,82 @@ export default function Home() {
     }
   }
 
+  function mode(array)
+{
+    if(array.length == 0)
+        return null;
+    var modeMap = {};
+    var maxEl = array[0], maxCount = 1;
+    for(var i = 0; i < array.length; i++)
+    {
+        var el = array[i];
+        if(modeMap[el] == null)
+            modeMap[el] = 1;
+        else
+            modeMap[el]++;  
+        if(modeMap[el] > maxCount)
+        {
+            maxEl = el;
+            maxCount = modeMap[el];
+        }
+    }
+    return maxEl;
+}
+
+  const getReccomendedEventType = () => {
+    let eventTypes = [];
+    registeredEvents.forEach((e) => {
+      eventTypes.push(e.eventType);
+    });
+    setCommonRegisterType(mode(eventTypes));
+  }
+
+
+  useEffect(() => {
+
+    getReccomendedEventType();
+
+    setUseRecEvents(allEvents.flatMap((eventDoc) => {
+      console.log(commonRegisterType);
+      // if registered events HAS event id, or the event is before today, or the event type isn't what we want, return null
+      if( (registeredEvents.filter((e) => e.eventID === eventDoc.id).length > 0) || (eventDoc.data().time.toDate() < new Date()) || (eventDoc.data().type !== commonRegisterType)) {
+        return [];
+      } else {
+        return <Grid item xs={4}>
+        <Card sx={{ maxWidth: 345 }}>
+        <CardActionArea>
+          <CardContent>
+            <Typography gutterBottom variant="h5" component="div">
+              {eventDoc.data().name}
+            </Typography>
+            <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1, fontWeight: 'bold'}}>
+              Created by: admin
+            </Typography>
+            <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1}}>
+              {eventDoc.data().time.toDate().toLocaleString()}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {eventDoc.data().description}
+            </Typography>
+          </CardContent>
+        </CardActionArea>
+        <CardActions>
+         <Typography variant="body9" color="text.secondary" component="div" gutterBottom sx={{mb: 1, fontWeight: 'bold'}}> Register for this event in the Events tab!</Typography>
+        </CardActions>
+      </Card>
+        </Grid>
+      };
+    })); 
+  }, [registeredEvents, commonRegisterType, allEvents]);
+
+
 
 
 
   React.useEffect(() => {
     if(user.uid){
       
-      getRegisteredEventIDs();
+      getRegisteredEventIDs()
       getPrizesWon();
       getCurrentUserData();
     }
@@ -103,7 +176,7 @@ export default function Home() {
   useEffect(() => {
     if(!initialized){
       initialized = true;
-      getAllCurrentEvents();
+      getAllEvents();
 
     }
 
@@ -111,7 +184,7 @@ export default function Home() {
   
   const useEvents = allEvents.flatMap((eventDoc) => {
     // if registered events dosen't have the event id, or the event is verified (this is checked earlier in another function), return null
-    if(!registeredEvents.filter((e) => e.eventID === eventDoc.id).length > 0){
+    if( (!registeredEvents.filter((e) => e.eventID === eventDoc.id).length > 0) || (eventDoc.data().time.toDate() < new Date()) ) {
       return [];
     } else {
       return <Grid item xs={4}>
@@ -180,6 +253,9 @@ export default function Home() {
   });
 
 
+
+
+
   return (
     <div>
       <Typography variant='h3' sx={{fontWeight: 'bold', mb: 2}}>Welcome back, {loggedInUser.name}</Typography>
@@ -192,6 +268,10 @@ export default function Home() {
     <Typography variant='h4' sx={{fontWeight: 'bold', mb: 2, mt: 2}}>Your Prizes</Typography>
       <Grid container spacing={3}>
       {usePrizes.length > 0? usePrizes : <Typography variant="body1" color="text.secondary" sx={{mt: 2, ml: 4}}> You haven't won any prizes </Typography>}
+    </Grid>
+    <Typography variant='h4' sx={{fontWeight: 'bold', mb: 0, mt: 2, mb: 2}}>Events For You:</Typography>
+      <Grid container spacing={3}>
+      {useRecEvents.length > 0? useRecEvents : <Typography variant="body1" color="text.secondary" sx={{mt: 5, ml: 4}}> There are no events for you yet... </Typography>}
     </Grid>
     </div>
   )

@@ -54,7 +54,7 @@ export default function EventCreator() {
     const addEvent = async () => {
       //const userDoc = await getDoc(currentUserRef);
       const userData = currentUserDoc.data();
-      const isAdmin = userData.isAdmin;
+      const isAdmin = userData.admin;
 
       if(!isAdmin) {
         setError('You are not an admin!');
@@ -62,7 +62,7 @@ export default function EventCreator() {
       }
       try{
       await addDoc(collection(db, "events"), {
-        creator: currentUserRef,
+        creator: doc(db, 'users', currentUserDoc.id),
         description: description,
         name: name,
         pointsEarned: pointsEarned,
@@ -94,7 +94,7 @@ export default function EventCreator() {
 
   return (
     <div>
-      {(currentUserDoc && !currentUserDoc.data().isAdmin)? <Navigate to='/' />: null}
+      {(currentUserDoc && !currentUserDoc.data().admin)? <Navigate to='/' />: null}
     <Typography component="h1" variant="h5">
         Create an Event
     </Typography>

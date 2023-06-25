@@ -168,7 +168,7 @@ const [fileData, setFileData] = useState(null);
  
   return (
     <div>
-        {(currentUserDoc && !currentUserDoc.data().isAdmin)? <Navigate to="/" /> : null}
+      {(currentUserDoc && !currentUserDoc.data().admin)? <Navigate to='/' />: null}
         <Typography component="h1" variant="h5">
             Create a User
         </Typography>

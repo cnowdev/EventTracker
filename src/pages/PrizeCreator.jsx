@@ -31,7 +31,7 @@ export default function PrizeCreator() {
     const addPrize = async () => {
         try{
             await addDoc(collection(db, "prizes"), {
-                creator: currentUserDoc.id,
+                creator: doc(db, 'users', currentUserDoc.id),
                 description: description,
                 name: name,
                 imageURL: imageURL,
@@ -73,7 +73,7 @@ export default function PrizeCreator() {
 
   return (
     <div>
-        {(currentUserDoc && !currentUserDoc.data().isAdmin)? <Navigate to="/" /> : null}
+      {(currentUserDoc && !currentUserDoc.data().admin)? <Navigate to='/' />: null}
         <Typography component="h1" variant="h5">
             Create a Prize
         </Typography>

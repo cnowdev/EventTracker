@@ -113,8 +113,7 @@ const rows = eventSignupList.map((eventSignup) => {
 
   return (
     <div>
-
-    {(currentUserDoc && !currentUserDoc.data().isAdmin)? <Navigate to="/" /> : null}
+      {(currentUserDoc && !currentUserDoc.data().admin)? <Navigate to='/' />: null}
     <DataGrid
   checkboxSelection
   sx={{
