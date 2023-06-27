@@ -58,7 +58,7 @@ const handleSecondaryOpen = () => {
 }
 const handleSecondaryClose = () => setSecondaryOpen(false);
 
-
+//check inputs, if valid, update prize data
  const handleSubmit = (event) => {
   event.preventDefault();
 
@@ -83,6 +83,7 @@ const handleSecondaryClose = () => setSecondaryOpen(false);
 
 
 const batch = writeBatch(db);
+//updates prize data with data provided
 const updatePrizeData = async() => {
   const prizeRef = doc(db, 'prizes', prizeID);
   
@@ -117,18 +118,21 @@ const getCreatorInfo = async(creatorRef) => {
   return q.data();
 }
 
+//get all prizes
   const getPrizes = async() => {
     const q = query(collection(db, 'prizes'));
     const querySnapshot = await getDocs(q);
     setPrizes(querySnapshot.docs);
   }
 
+  //get all users
   const getAllUsers = async() => {
     const q = query(collection(db, 'users'));
     const querySnapshot = await getDocs(q);
     setAllUsers(querySnapshot.docs);
   }
 
+  //on page render, get all prizes and users
   let initialized = false;
   useEffect(() => {
     if(!initialized){
@@ -140,6 +144,7 @@ const getCreatorInfo = async(creatorRef) => {
 
   }, []);
 
+  //when the user object is defined, fetch their admin status
   useEffect(() => {
     if(user) {
       const fetchAdminStatus = async() => {
@@ -153,7 +158,7 @@ const getCreatorInfo = async(creatorRef) => {
 
 
 
-
+//map every prize to a card and display it
   const usePrizes = prizes.map((prize) => {
     
     return (

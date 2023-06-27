@@ -29,15 +29,12 @@ export default function SignInSide() {
   const navigate = useNavigate(); 
   const [error, setError] = useState(false);
 
+
+  //sign in the user, then navigate them to the home page
   const handleSubmit = async (event) => {
     event.preventDefault();
+    //get data from the inputs
     const data = new FormData(event.currentTarget);
-    /*
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
-    */
     
     try{
       await signInUser(data.get('email'), data.get('password'));

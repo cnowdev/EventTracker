@@ -25,7 +25,7 @@ export default function Leaderboard() {
     
     //const rows = [{id: 1, col1: 'Hello', col2: 'World', col3: 30}, {id: 2, col1: 'XGrid', col2: 'is Awesome', col3: 40}, {id: 3, col1: 'Material-UI', col2: 'is Amazing', col3: 50}];
     const columns = [{field: 'col1', headerClassName: 'columncolor', headerName: 'Name', width: 300}, 
-    {field: 'col2', headerClassName: 'columncolor', headerName: 'GPA', width: 300}, 
+    {field: 'col2', headerClassName: 'columncolor', headerName: 'Grade', width: 300}, 
     {field: 'col3', headerClassName: 'columncolor', headerName: 'Points', width: 100},
   ]
     
@@ -68,6 +68,7 @@ export default function Leaderboard() {
     p: 4,
   };
 
+  //check for invalid inputs, if valid, update user data
   const handleSubmit = (event) => {
     event.preventDefault();
     if(!name || !gpa || !points || !grade || gpa < 0 || gpa > 4 || grade < 9 || grade > 12 || points < 0){
@@ -89,7 +90,7 @@ export default function Leaderboard() {
   }
 
 
-
+//get all user data from firestore, order by pts
     const getData = async() => {
       const q = query(collection(db, "users"), orderBy("points", "desc"));
       const querySnapshot = await getDocs(q);
@@ -101,12 +102,13 @@ export default function Leaderboard() {
         return {
           id: doc.id,
           col1: doc.data().name,
-          col2: doc.data().gpa,
+          col2: parseInt(doc.data().grade),
           col3: parseInt(doc.data().points),
         }
       }));
     }
 
+    //get user data given an ID. Used in user editor modal
     const getUserData = async(id) => {
       setCurrentID(id);
       const userDoc = await getDoc(doc(db, 'users', id));
@@ -116,6 +118,8 @@ export default function Leaderboard() {
       setGrade(userDoc.data().grade);
       setAdminStatus(userDoc.data().admin);      
     }
+
+    //update user data in firestore
     const batch = writeBatch(db);
     const updateUserData = async() => {
       if(currentID){
@@ -138,7 +142,7 @@ export default function Leaderboard() {
 
     
 
-
+//if a user object exists, fetch their admin statu
     React.useEffect(() => {
       if(user.uid){
         const fetchAdminStatus = async() => {
@@ -153,7 +157,7 @@ export default function Leaderboard() {
 
     }, [user]);
    
-
+//get all user data on page render
     useEffect(() => {
       getData();
 
@@ -162,17 +166,7 @@ export default function Leaderboard() {
 
 
 
-    /*
-      const querySnapshot = db.collection('users').orderBy('points', 'desc').onSnapshot(snapshot => {
-        const users = snapshot.docs.map(doc => ({
-          id: doc.id,
-          col1: doc.data().name,
-          col2: doc.data().gpa,
-          col3: doc.data().points,
-        }))
-        setUsers(users)
-      });
-*/
+
 
   return (
     <Box

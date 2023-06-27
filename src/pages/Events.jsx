@@ -37,10 +37,12 @@ export default function Events() {
   const [creatorInfo, setCreatorInfo] = useState({});
   const {user} = UserAuth();
 
+  //if a user dosen't exist, set page to loading
   if(!user){
     return <h1>Loading...</h1>
   }
 
+  //all registered events state
   const [registeredEvents, setRegisteredEvents] = useState([]);
   const [admin, setAdmin] = useState(false);
 
@@ -68,6 +70,7 @@ export default function Events() {
   }
 
 
+  //fetches all users from firestore
   const getAllUsers = async() => {
     const q = query(collection(db, 'users'));
     const querySnapshot = await getDocs(q);
@@ -76,7 +79,7 @@ export default function Events() {
 
   const handleSubmit = (event) => {
     
-    
+    //check for invalid inputs
     event.preventDefault();
     if(!eventName || !eventDescription || !eventTime || !eventType || isBeforeRightNow(eventTime.toDate())){
       setError('Invalid or empty input(s). Please try again.');
@@ -94,13 +97,16 @@ export default function Events() {
     }
   }
 
-
+//get creator info
   const getCreatorInfo = async(creatorRef) => {
     const q = await getDoc(creatorRef);
     setCreatorInfo(q.data());
   }
 
+  //create a writebatch to update the event
   const batch = writeBatch(db);
+
+  //update event data with data from event editor
   const updateEventData = async() => {
     const eventRef = doc(db, 'events', eventID);
     console.log(eventName, eventDescription, eventTime.toDate(), eventType);
@@ -115,7 +121,7 @@ export default function Events() {
     batch.commit();
     }
 
-
+    //register a user for an event
   const registerEvent = async(eventid, type) => {
     const eventRef = doc(db, 'events', eventid);
     await addDoc(collection(db, "eventsignups"), {
@@ -127,6 +133,7 @@ export default function Events() {
     
   }
 
+  //get all registered events for the user
   const getRegisteredEvents = async() => {
     const q = query(collection(db, 'eventsignups'), where("user", "==", doc(db, 'users', user.uid)));
     const querySnapshot = await getDocs(q);
@@ -137,14 +144,14 @@ export default function Events() {
     console.log(registeredEvents);
   }
 
-
+  // get all events that are in the future
   const getAllCurrentEvents = async() => {
     const q = query(collection(db, 'events'), where("time", ">=", new Date()));
     const querySnapshot = await getDocs(q);
     setAllCurrentEvents(querySnapshot.docs);
   }
 
-
+//update the event cards when the calendar is changed
   const updateCards = async(val) => {
     let theDay = new Date(val.toDate().toDateString());
     let theNextDay = new Date(val.add(1, 'day').toDate().toDateString());
@@ -161,8 +168,9 @@ export default function Events() {
 
 
 
-
+//map all events to cards
   const useEvents = events.map((doc) => {
+    //if the user is registered for the event, disable the register button
       let registerStatus = registeredEvents.includes(doc.id);
       getCreatorInfo(doc.data().creator)
 
@@ -235,6 +243,7 @@ const modalStyle = {
   p: 4,
 };
 
+//custom day component for the calendar, so we can highlight days that have events
 function ServerDay(props) {
   const { highlightedDays = [], day, outsideCurrentMonth, ...other } = props;
 
@@ -255,7 +264,7 @@ function ServerDay(props) {
   );
 }
 
-
+//on page render, get All users and all upcoming events
 useEffect(() => {
 
 getAllCurrentEvents();
@@ -265,6 +274,7 @@ getAllUsers();
 
 useEffect(() => {
 
+  //for all future events, add the day of the event to the highlighted days array
 allCurrentEvents.map((doc) => {
   setHighlightedDays((prev) => [...prev, doc.data().time.toDate().getDate()]);
 })
@@ -274,6 +284,7 @@ allCurrentEvents.map((doc) => {
 
 useEffect(() => {
 
+  //fetch admin status of user when the user object is updated
   if(user){
     const fetchAdminStatus = async() => {
       const userDoc = await getDoc(doc(db, 'users', user.uid));

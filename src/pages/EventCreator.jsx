@@ -52,7 +52,7 @@ export default function EventCreator() {
 
     //add event to firestore
     const addEvent = async () => {
-      //const userDoc = await getDoc(currentUserRef);
+      
       const userData = currentUserDoc.data();
       const isAdmin = userData.admin;
 
@@ -61,6 +61,7 @@ export default function EventCreator() {
         return;
       }
       try{
+        
       await addDoc(collection(db, "events"), {
         creator: doc(db, 'users', currentUserDoc.id),
         description: description,
@@ -76,9 +77,10 @@ export default function EventCreator() {
     }
     }
 
+
     const handleSubmit = (event) => {
         event.preventDefault();
-
+        //check for invalid inputs
         if(!name || !description || !pointsEarned || !type){
           setError('Invalid or empty input(s). Please try again.');
           return;
