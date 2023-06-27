@@ -269,7 +269,7 @@ export default function Home() {
       <Grid container spacing={3}>
       {usePrizes.length > 0? usePrizes : <Typography variant="body1" color="text.secondary" sx={{mt: 2, ml: 4}}> You haven't won any prizes </Typography>}
     </Grid>
-    <Typography variant='h4' sx={{fontWeight: 'bold', mb: 0, mt: 2, mb: 2}}>Events For You:</Typography>
+    <Typography variant='h4' sx={{fontWeight: 'bold', mt: 2, mb: 2}}>Events For You:</Typography>
       <Grid container spacing={3}>
       {useRecEvents.length > 0? useRecEvents : <Typography variant="body1" color="text.secondary" sx={{mt: 5, ml: 4}}> There are no events for you yet... </Typography>}
     </Grid>

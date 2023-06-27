@@ -32,6 +32,7 @@ export default function Events() {
 
   const [calendarValue, setCalendarValue] = useState(dayjs());
   const [events, setEvents] = useState([])
+  const [allCurrentEvents, setAllCurrentEvents] = useState([]);
   const eventsRef = collection(db, 'events');
   const [creatorInfo, setCreatorInfo] = useState({});
   const {user} = UserAuth();
@@ -42,6 +43,8 @@ export default function Events() {
 
   const [registeredEvents, setRegisteredEvents] = useState([]);
   const [admin, setAdmin] = useState(false);
+
+  const [highlightedDays, setHighlightedDays] = useState([]);
 
 
   //error, loading, and success states
@@ -134,6 +137,14 @@ export default function Events() {
     console.log(registeredEvents);
   }
 
+
+  const getAllCurrentEvents = async() => {
+    const q = query(collection(db, 'events'), where("time", ">=", new Date()));
+    const querySnapshot = await getDocs(q);
+    setAllCurrentEvents(querySnapshot.docs);
+  }
+
+
   const updateCards = async(val) => {
     let theDay = new Date(val.toDate().toDateString());
     let theNextDay = new Date(val.add(1, 'day').toDate().toDateString());
@@ -147,21 +158,8 @@ export default function Events() {
 
 
 
-  const dateArray = [new Date('2023-06-20')]
 
-  const ServerDay = (props) => {
-    const {day, ...other} = props;
 
-    const isSelected = dateArray.indexOf(props.day.date()) >= 0;
-    return (
-      <Badge
-        key={props.day.toString()}
-        overlap='circular'
-        badgeContent={isSelected? '🤓': undefined}>
-          <PickersDay {...other} day={day}/>
-        </Badge>
-    )
-  }
 
 
   const useEvents = events.map((doc) => {
@@ -237,15 +235,41 @@ const modalStyle = {
   p: 4,
 };
 
+function ServerDay(props) {
+  const { highlightedDays = [], day, outsideCurrentMonth, ...other } = props;
 
+
+
+  
+  const isSelected =
+    !props.outsideCurrentMonth && highlightedDays.indexOf(props.day.date()) >= 0;
+
+  return (
+    <Badge
+      key={props.day.toString()}
+      overlap="circular"
+      badgeContent={isSelected ? '🔴' : undefined}
+    >
+      <PickersDay {...other} outsideCurrentMonth={outsideCurrentMonth} day={day} />
+    </Badge>
+  );
+}
 
 
 useEffect(() => {
 
-
+getAllCurrentEvents();
 getAllUsers();
 
 }, []);
+
+useEffect(() => {
+
+allCurrentEvents.map((doc) => {
+  setHighlightedDays((prev) => [...prev, doc.data().time.toDate().getDate()]);
+})
+
+}, [allCurrentEvents]);
 
 
 useEffect(() => {
@@ -278,8 +302,18 @@ useEffect(() => {
 
 
 
-    <DateCalendar component='div' 
+    <DateCalendar 
+    component='div' 
     value={calendarValue}
+    slots={{
+      day: ServerDay,
+    }}
+    slotProps={{
+      day: {
+        highlightedDays,
+      },
+    }}
+
 
     onChange={(newVal) => {
       setCalendarValue(newVal);
