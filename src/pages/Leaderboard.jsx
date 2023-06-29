@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { DataGrid, renderActionsCell } from '@mui/x-data-grid';
 import Box from '@mui/material/Box';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy, getDoc, doc, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, getDoc, doc, writeBatch, deleteDoc } from 'firebase/firestore';
 import { Button, Input } from '@mui/material';
 import { UserAuth } from '../contexts/AuthContext';
 import Modal from '@mui/material/Modal';
@@ -267,7 +267,7 @@ onClick={() => {
               <TextField
                 sx={{ml: 2}}
                 margin="normal"
-                error={!points}
+                error={points < 0}
                 required
                 name="Points"
                 label="Points"
@@ -310,6 +310,18 @@ onClick={() => {
                 sx={{ mt: 3, mb: 2 }}
               >
                 Edit
+              </Button>
+              <Button
+                fullWidth
+                variant="contained"
+                color='error'
+                sx={{ mt: 1, mb: 2 }}
+                onClick={async() => {
+                  handleClose();
+                  await deleteDoc(doc(db, 'users', currentID));
+                }}
+              >
+                Delete
               </Button>
 
               {error?

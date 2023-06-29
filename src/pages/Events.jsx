@@ -13,7 +13,7 @@ import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { useState } from 'react';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, getDoc, doc, updateDoc, increment, addDoc, QuerySnapshot, writeBatch } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, doc, updateDoc, increment, addDoc, QuerySnapshot, writeBatch, deleteDoc } from 'firebase/firestore';
 import { UserAuth } from '../contexts/AuthContext';
 import { PickersDay } from '@mui/x-date-pickers';
 import TextField from '@mui/material/TextField';
@@ -188,6 +188,9 @@ export default function Events() {
             <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1}}>
               {doc.data().time.toDate().toLocaleString()}
             </Typography>
+            <Typography variant="body3" color="green" component="div" gutterBottom sx={{mb: 1}}>
+            Points: {doc.data().pointsEarned}
+          </Typography>
             <Typography variant="body1" color="text.secondary">
               {doc.data().description}
             </Typography>
@@ -431,6 +434,18 @@ useEffect(() => {
                 >
                 Save
                 </Button>
+                <Button
+                fullWidth
+                variant="contained"
+                color='error'
+                sx={{ mt: 1, mb: 2 }}
+                onClick={async() => {
+                  handleClose();
+                  await deleteDoc(doc(db, 'events', eventID));
+                }}
+              >
+                Delete
+              </Button>
 
                 {error?
               <Alert 

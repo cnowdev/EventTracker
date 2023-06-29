@@ -55,8 +55,9 @@ export default function EventValidator() {
     const eventValidate = async (eventSignupID, userID, points) => {
 
         //validate the user's admin status
-        if(currentUserDoc && !currentUserDoc.data().isAdmin) {
+        if(currentUserDoc && !currentUserDoc.data().admin) {
             setError('You are not an admin!');
+            return;
         }
 
         try{
