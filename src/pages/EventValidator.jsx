@@ -24,13 +24,14 @@ export default function EventValidator() {
     const [currentUserDoc, setCurrentUserDoc] = useState(null);
     const {user} = UserAuth();
 
-
+  //get all event signups from firestore
     const getEventSignups = async () => {
         const q = query(collection(db, 'eventsignups'), where("verified", "==", false));
         const eventSignups = await getDocs(q);
         return eventSignups.docs
     }
 
+    //get all user and event data from each event signup
     const getEventSignupData = () => {
         getEventSignups().then(async (eventSignups) => {
             await Promise.all(eventSignups.map(async (eventSignup) => {
@@ -50,14 +51,17 @@ export default function EventValidator() {
         })
     }
 
+    //validate event when checked
     const eventValidate = async (eventSignupID, userID, points) => {
 
+        //validate the user's admin status
         if(currentUserDoc && !currentUserDoc.data().admin) {
             setError('You are not an admin!');
             return;
         }
 
         try{
+            //create a write batch so we can validate multipule users at once
             const batch = writeBatch(db);
             console.log(eventSignupID, userID, points);
             //update user points
@@ -77,6 +81,7 @@ export default function EventValidator() {
         }
     }
 
+//on page render, get event signup data
 let initialized = false;
 useEffect(() => {
     if(!initialized) {
@@ -88,7 +93,7 @@ useEffect(() => {
 
 
 
-//get current user
+//get current user when the user object is defined
 React.useEffect(() => {
     if(user.uid){
       const fetchUserDoc = async() => {
@@ -102,7 +107,7 @@ React.useEffect(() => {
 
   }, [user]);
 
-
+//Map every eventsignup to a row in the data grid
 const rows = eventSignupList.map((eventSignup) => {
     return {
         id: eventSignup.id,

@@ -44,6 +44,8 @@ export default function PrizeCreator() {
             setError(e.message);
         }}
 
+
+        //check for invalid inputs, if valid add the prize to firestore.
     const handleSubmit = (event) => {
         event.preventDefault();
 

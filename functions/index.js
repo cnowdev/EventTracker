@@ -17,10 +17,12 @@ const {getAuth} = require("firebase-admin/auth");
 
 initializeApp();
 
+//get firestore and admin auth admin SDKs
 const firestore = getFirestore();
 const auth = getAuth();
 
 exports.createUserAccount = onCall((request) => {
+    //get all required data from request
     const email = request.data.email;
     const password = request.data.password;
     const gpa = request.data.gpa;
@@ -29,14 +31,17 @@ exports.createUserAccount = onCall((request) => {
     const name = request.data.name;
     const admin = request.data.admin;
 
-    logger.info({email: email, password: password, uid: uid, gpa: gpa, grade: grade, name: name, admin: admin});   
+    //logger.info({email: email, password: password, uid: uid, gpa: gpa, grade: grade, name: name, admin: admin});   
     
 
     try{
+        //Create a user in firebase auth
          return auth.createUser({
             email: email,
-            password: password
-        }).then((userRecord) => {
+            password: password            
+        })
+        //If user is succesfully added to firebase auth, add that user to firestore
+        .then((userRecord) => {
             logger.info("Successfully created new user:", userRecord.uid);
             return firestore.collection("users").doc(userRecord.uid).set({
                 gpa: gpa,
@@ -44,18 +49,25 @@ exports.createUserAccount = onCall((request) => {
                 name: name,
                 admin: admin,
                 points: 0
-            }).then(() => {
+            })
+            //if the user is sucessfully added to firestore, return sucess message that we were able to create the user
+            .then(() => {
                 logger.info("Successfully created new user document");
                 return {status: 'complete', message: "Successfully created new user document"};
-            }).catch((error) => {
+            })
+            //if there was an error adding the user to firestore, return error message
+            .catch((error) => {
                 logger.error("Error creating new user document: ", error);
                 return {status: 'error', message: "Error creating new user document"};
             });
-        }).catch((error) => {
+        })
+        // if there was an error adding user to firebase, return error message.
+        .catch((error) => {
             logger.error("Error creating new user:", error);
             return {status: 'error', message: "Error creating new user"};
         });
     }catch(e){
+        //also log an error to firebase functions log
         logger.error(e);
     }
     
@@ -63,15 +75,23 @@ exports.createUserAccount = onCall((request) => {
 
 
 exports.importUserData = onCall((request) => {
-    const writeBatch = firestore.batch();
-    const userData = request.data.userData;
-    let itemsProcessed = 0;
 
+    //write batch so we can commit all users at once
+    const writeBatch = firestore.batch();
+
+    //get all user data from request
+    const userData = request.data.userData;
+
+    //boolean to check if there was an error with a user already existing
+    let alreadyExistError = false;
+
+    //create a promise for each user to create a user in firebase auth
     const createUserPromise = userData.map((user) => {
         return auth.createUser({
             email: user.email,
             password: user.password
         })
+        //if the user was sucessfully created in firebase auth, add that user to our firestore write  batch
         .then((userRecord) => {
             let userAdminStatus = false;
             if(user.admin === 'true') { userAdminStatus = true;}
@@ -82,15 +102,27 @@ exports.importUserData = onCall((request) => {
                 name: user.name,
                 points: parseInt(user.points)
             });
+        })
+        //if there was an error creating a user, check if the error was that the user already exists. If it wasn't an error where the user already exists, throw an error to be caught later
+        .catch((error) => {
+            if(error.code = 'auth/email-already-exists'){
+                console.log('user already exists');
+                alreadyExistError = true;
+                return;
+            } else {
+                throw error;
+            }
         });
     });
 
+    //once all users have been created in firebase auth, commit the write batch to firestore
     return Promise.all(createUserPromise).then(() => {
         return writeBatch.commit();
     }).then(() => {
-        return { status: 'complete', message: 'Awesome!'}
+        return { status: 'complete', message: 'Awesome!', alreadyExistError: alreadyExistError}
     }).catch((e) => {
-        return {status: 'error', message: 'error:' + e.message}
+        console.log(e.code);
+        return {status: 'error', message: 'error:' + e.message, alreadyExistError: alreadyExistError}
     });
 
 

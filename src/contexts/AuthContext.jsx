@@ -7,6 +7,7 @@ const UserContext = createContext();
 
 export const AuthContextProvider = ({children}) => {
 
+    
     const [user, setUser] = useState({});
     const [admin, setAdmin] = useState(false);
     const signInUser = (email, password) => {

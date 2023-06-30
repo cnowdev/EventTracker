@@ -13,7 +13,7 @@ import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { useState } from 'react';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, getDoc, doc, updateDoc, increment, addDoc, QuerySnapshot, writeBatch } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, doc, updateDoc, increment, addDoc, QuerySnapshot, writeBatch, deleteDoc } from 'firebase/firestore';
 import { UserAuth } from '../contexts/AuthContext';
 import { PickersDay } from '@mui/x-date-pickers';
 import TextField from '@mui/material/TextField';
@@ -32,16 +32,21 @@ export default function Events() {
 
   const [calendarValue, setCalendarValue] = useState(dayjs());
   const [events, setEvents] = useState([])
+  const [allCurrentEvents, setAllCurrentEvents] = useState([]);
   const eventsRef = collection(db, 'events');
   const [creatorInfo, setCreatorInfo] = useState({});
   const {user} = UserAuth();
 
+  //if a user dosen't exist, set page to loading
   if(!user){
     return <h1>Loading...</h1>
   }
 
+  //all registered events state
   const [registeredEvents, setRegisteredEvents] = useState([]);
   const [admin, setAdmin] = useState(false);
+
+  const [highlightedDays, setHighlightedDays] = useState([]);
 
 
   //error, loading, and success states
@@ -65,6 +70,7 @@ export default function Events() {
   }
 
 
+  //fetches all users from firestore
   const getAllUsers = async() => {
     const q = query(collection(db, 'users'));
     const querySnapshot = await getDocs(q);
@@ -73,7 +79,7 @@ export default function Events() {
 
   const handleSubmit = (event) => {
     
-    
+    //check for invalid inputs
     event.preventDefault();
     if(!eventName || !eventDescription || !eventTime || !eventType || isBeforeRightNow(eventTime.toDate())){
       setError('Invalid or empty input(s). Please try again.');
@@ -91,13 +97,16 @@ export default function Events() {
     }
   }
 
-
+//get creator info
   const getCreatorInfo = async(creatorRef) => {
     const q = await getDoc(creatorRef);
     setCreatorInfo(q.data());
   }
 
+  //create a writebatch to update the event
   const batch = writeBatch(db);
+
+  //update event data with data from event editor
   const updateEventData = async() => {
     const eventRef = doc(db, 'events', eventID);
     console.log(eventName, eventDescription, eventTime.toDate(), eventType);
@@ -112,7 +121,7 @@ export default function Events() {
     batch.commit();
     }
 
-
+    //register a user for an event
   const registerEvent = async(eventid, type) => {
     const eventRef = doc(db, 'events', eventid);
     await addDoc(collection(db, "eventsignups"), {
@@ -124,6 +133,7 @@ export default function Events() {
     
   }
 
+  //get all registered events for the user
   const getRegisteredEvents = async() => {
     const q = query(collection(db, 'eventsignups'), where("user", "==", doc(db, 'users', user.uid)));
     const querySnapshot = await getDocs(q);
@@ -134,6 +144,14 @@ export default function Events() {
     console.log(registeredEvents);
   }
 
+  // get all events that are in the future
+  const getAllCurrentEvents = async() => {
+    const q = query(collection(db, 'events'), where("time", ">=", new Date()));
+    const querySnapshot = await getDocs(q);
+    setAllCurrentEvents(querySnapshot.docs);
+  }
+
+//update the event cards when the calendar is changed
   const updateCards = async(val) => {
     let theDay = new Date(val.toDate().toDateString());
     let theNextDay = new Date(val.add(1, 'day').toDate().toDateString());
@@ -147,24 +165,12 @@ export default function Events() {
 
 
 
-  const dateArray = [new Date('2023-06-20')]
-
-  const ServerDay = (props) => {
-    const {day, ...other} = props;
-
-    const isSelected = dateArray.indexOf(props.day.date()) >= 0;
-    return (
-      <Badge
-        key={props.day.toString()}
-        overlap='circular'
-        badgeContent={isSelected? '🤓': undefined}>
-          <PickersDay {...other} day={day}/>
-        </Badge>
-    )
-  }
 
 
+
+//map all events to cards
   const useEvents = events.map((doc) => {
+    //if the user is registered for the event, disable the register button
       let registerStatus = registeredEvents.includes(doc.id);
       getCreatorInfo(doc.data().creator)
 
@@ -182,9 +188,9 @@ export default function Events() {
             <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1}}>
               {doc.data().time.toDate().toLocaleString()}
             </Typography>
-            <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1, color: 'green'}}>
-              Points Awarded: {doc.data().pointsEarned}
-            </Typography>
+            <Typography variant="body3" color="green" component="div" gutterBottom sx={{mb: 1}}>
+            Points: {doc.data().pointsEarned}
+          </Typography>
             <Typography variant="body1" color="text.secondary">
               {doc.data().description}
             </Typography>
@@ -240,19 +246,48 @@ const modalStyle = {
   p: 4,
 };
 
+//custom day component for the calendar, so we can highlight days that have events
+function ServerDay(props) {
+  const { highlightedDays = [], day, outsideCurrentMonth, ...other } = props;
 
 
 
+  
+  const isSelected =
+    !props.outsideCurrentMonth && highlightedDays.indexOf(props.day.date()) >= 0;
+
+  return (
+    <Badge
+      key={props.day.toString()}
+      overlap="circular"
+      badgeContent={isSelected ? '🔴' : undefined}
+    >
+      <PickersDay {...other} outsideCurrentMonth={outsideCurrentMonth} day={day} />
+    </Badge>
+  );
+}
+
+//on page render, get All users and all upcoming events
 useEffect(() => {
 
-
+getAllCurrentEvents();
 getAllUsers();
 
 }, []);
 
+useEffect(() => {
+
+  //for all future events, add the day of the event to the highlighted days array
+allCurrentEvents.map((doc) => {
+  setHighlightedDays((prev) => [...prev, doc.data().time.toDate().getDate()]);
+})
+
+}, [allCurrentEvents]);
+
 
 useEffect(() => {
 
+  //fetch admin status of user when the user object is updated
   if(user){
     const fetchAdminStatus = async() => {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -281,8 +316,18 @@ useEffect(() => {
 
 
 
-    <DateCalendar component='div' 
+    <DateCalendar 
+    component='div' 
     value={calendarValue}
+    slots={{
+      day: ServerDay,
+    }}
+    slotProps={{
+      day: {
+        highlightedDays,
+      },
+    }}
+
 
     onChange={(newVal) => {
       setCalendarValue(newVal);
@@ -389,6 +434,18 @@ useEffect(() => {
                 >
                 Save
                 </Button>
+                <Button
+                fullWidth
+                variant="contained"
+                color='error'
+                sx={{ mt: 1, mb: 2 }}
+                onClick={async() => {
+                  handleClose();
+                  await deleteDoc(doc(db, 'events', eventID));
+                }}
+              >
+                Delete
+              </Button>
 
                 {error?
               <Alert 

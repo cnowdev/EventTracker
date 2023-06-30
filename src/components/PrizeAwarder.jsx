@@ -29,13 +29,14 @@ export default function PrizeAwarder() {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
+    //fetch all prizes that don't have the `winner` field set
     const getWinnablePrizes = async() => {
         const q = query(collection(db, 'prizes'), where('winner', '==', null));
         const querySnapshot = await getDocs(q);
         setWinnablePrizes(querySnapshot.docs);
     }
 
-    
+    //get a prize winner given the prize type.
     const getPrizeWinner = async(type) => {
         console.log(type);
         if(type === 'r'){
@@ -68,8 +69,10 @@ export default function PrizeAwarder() {
             setError('There are no prizes to award!');
             return;
         }
+        //create a write batch so we can award all prizes at once.
         const batch = writeBatch(db);
         let itemsProcessed = 0;
+        //for each winnable prize, get a winner and update the prize document
         winnablePrizes.forEach(async(prize, index, array) => {
                 const winnerUser = await getPrizeWinner(prize.data().prizeType);
                 batch.update(doc(db, 'prizes', prize.id), {winner: doc(db, 'users', winnerUser.id)});
@@ -77,7 +80,7 @@ export default function PrizeAwarder() {
                     prize: prize.data(),
                     winner: winnerUser.data()
                 }]);
-
+            //if we've processed every prize, commit the batch
             itemsProcessed++;
             if(itemsProcessed === array.length){
                 batch.commit();
@@ -89,6 +92,7 @@ export default function PrizeAwarder() {
     }
     }
 
+    //on page render, get all winnable prizes
     let initialized = false;
     useEffect(() => {
       if(!initialized){

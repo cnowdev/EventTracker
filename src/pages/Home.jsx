@@ -34,17 +34,21 @@ export default function Home() {
 
   const [useRecEvents, setUseRecEvents] = useState([]);
 
+
+  //get every event from firestore
   const getAllEvents = async() => {
     const q = query(collection(db, 'events'));
     const querySnapshot = await getDocs(q);
     setAllEvents(querySnapshot.docs);
   }
 
+  //get the current user's data
   const getCurrentUserData = async() => {
     const userDoc = await getDoc(doc(db, 'users', user.uid));
     setLoggedInUser(userDoc.data());
   }
 
+  //get events where the user is registered, and other info like if it's verified or not
   const getRegisteredEventIDs = async() => {
     const q = query(collection(db, 'eventsignups'), where("user", "==", doc(db, 'users', user.uid)));
     const querySnapshot = await getDocs(q);
@@ -63,6 +67,7 @@ export default function Home() {
     console.log(registeredEvents);
   }
 
+  //get all the prizes the current user has won
   const getPrizesWon = async() => { 
     const q = query(collection(db, 'prizes'), where('winner', '==', doc(db, 'users', user.uid)));
     const querySnapshot = await getDocs(q);
@@ -70,7 +75,7 @@ export default function Home() {
     setPrizesWon(querySnapshot.docs);
   }
 
-  //convert prizeType to a readable string
+  //convert prizeType from firestore into a readable string
   const getPrizeTypeString = (prizeType) => {
     switch(prizeType){
       case 'r':
@@ -88,6 +93,8 @@ export default function Home() {
     }
   }
 
+
+  //function returns the most common element in an array
   function mode(array)
 {
     if(array.length == 0)
@@ -118,7 +125,7 @@ export default function Home() {
     setCommonRegisterType(mode(eventTypes));
   }
 
-
+//when we get the user's common register type, we can use it to get reccomended events
   useEffect(() => {
 
     getReccomendedEventType();
@@ -148,6 +155,9 @@ export default function Home() {
             <Typography variant="body1" color="text.secondary">
               {eventDoc.data().description}
             </Typography>
+            <Typography variant="body3" color="green" component="div" gutterBottom sx={{mb: 1}}>
+            Points: {eventDoc.data().pointsEarned}
+          </Typography>
           </CardContent>
         </CardActionArea>
         <CardActions>
@@ -162,7 +172,7 @@ export default function Home() {
 
 
 
-
+//when the user object is defined, get their registered events, prizes won, and current user data
   React.useEffect(() => {
     if(user.uid){
       
@@ -174,7 +184,7 @@ export default function Home() {
   }, [user]);
 
 
-
+//on page render get all events
   let initialized = false;
   useEffect(() => {
     if(!initialized){
@@ -185,6 +195,7 @@ export default function Home() {
 
   }, []);
   
+  //map all events to cards
   const useEvents = allEvents.flatMap((eventDoc) => {
     // if registered events dosen't have the event id, or the event is verified (this is checked earlier in another function), return null
     if( (!registeredEvents.filter((e) => e.eventID === eventDoc.id).length > 0) || (eventDoc.data().time.toDate() < new Date()) ) {
@@ -202,6 +213,9 @@ export default function Home() {
           </Typography>
           <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1}}>
             {eventDoc.data().time.toDate().toLocaleString()}
+          </Typography>
+          <Typography variant="body3" color="green" component="div" gutterBottom sx={{mb: 1}}>
+            Points: {eventDoc.data().pointsEarned}
           </Typography>
           <Typography variant="body1" color="text.secondary">
             {eventDoc.data().description}
@@ -225,6 +239,7 @@ export default function Home() {
     };
   });
 
+  //map all prizes the user has won to cards
   const usePrizes = prizesWon.map((prizeDoc) => {
     return <Grid item xs={4}>
     <Card sx={{ maxWidth: 345 }}>
@@ -272,7 +287,7 @@ export default function Home() {
       <Grid container spacing={3}>
       {usePrizes.length > 0? usePrizes : <Typography variant="body1" color="text.secondary" sx={{mt: 2, ml: 4}}> You haven't won any prizes </Typography>}
     </Grid>
-    <Typography variant='h4' sx={{fontWeight: 'bold', mb: 0, mt: 2, mb: 2}}>Events For You:</Typography>
+    <Typography variant='h4' sx={{fontWeight: 'bold', mt: 2, mb: 2}}>Events For You:</Typography>
       <Grid container spacing={3}>
       {useRecEvents.length > 0? useRecEvents : <Typography variant="body1" color="text.secondary" sx={{mt: 5, ml: 4}}> There are no events for you yet... </Typography>}
     </Grid>

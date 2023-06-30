@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Item from '@mui/material/Grid';
-import { collection, query, where, getDocs, getDoc, doc, updateDoc, increment, addDoc, QuerySnapshot, writeBatch } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, doc, updateDoc, increment, addDoc, QuerySnapshot, writeBatch, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserAuth } from '../contexts/AuthContext';
 import Modal from '@mui/material/Modal';
@@ -58,7 +58,7 @@ const handleSecondaryOpen = () => {
 }
 const handleSecondaryClose = () => setSecondaryOpen(false);
 
-
+//check inputs, if valid, update prize data
  const handleSubmit = (event) => {
   event.preventDefault();
 
@@ -83,6 +83,7 @@ const handleSecondaryClose = () => setSecondaryOpen(false);
 
 
 const batch = writeBatch(db);
+//updates prize data with data provided
 const updatePrizeData = async() => {
   const prizeRef = doc(db, 'prizes', prizeID);
   
@@ -117,18 +118,40 @@ const getCreatorInfo = async(creatorRef) => {
   return q.data();
 }
 
+//get all prizes
   const getPrizes = async() => {
     const q = query(collection(db, 'prizes'));
     const querySnapshot = await getDocs(q);
     setPrizes(querySnapshot.docs);
   }
 
+  //get all users
   const getAllUsers = async() => {
     const q = query(collection(db, 'users'));
     const querySnapshot = await getDocs(q);
     setAllUsers(querySnapshot.docs);
   }
 
+  
+  //convert prizeType from firestore into a readable string
+  const getPrizeTypeString = (prizeType) => {
+    switch(prizeType){
+      case 'r':
+        return "Complete Random";
+      case 'r9':
+        return "Random 9th Grader";
+      case 'r10':
+        return "Random 10th Grader";
+      case 'r11':
+        return "Random 11th Grader";
+      case 'r12':
+        return "Random 12th Grader";
+      case 'mostpoints':
+        return 'Most Points'
+    }
+  }
+
+  //on page render, get all prizes and users
   let initialized = false;
   useEffect(() => {
     if(!initialized){
@@ -140,25 +163,7 @@ const getCreatorInfo = async(creatorRef) => {
 
   }, []);
 
-
-  const getPrizeTypeString = (prizeType) => {
-    switch(prizeType){
-      case 'r':
-        return 'Completely Random';
-      case 'r9':
-        return 'Random 9th Grader'
-      case 'r10':
-        return 'Random 10th Grader'
-      case 'r11':
-        return 'Random 11th Grader'
-      case 'r12':
-        return 'Random 12th Grader'
-      case 'mostpoints':
-        return 'Most Points'
-    }
-  }
-
-
+  //when the user object is defined, fetch their admin status
   useEffect(() => {
     if(user) {
       const fetchAdminStatus = async() => {
@@ -172,7 +177,7 @@ const getCreatorInfo = async(creatorRef) => {
 
 
 
-
+//map every prize to a card and display it
   const usePrizes = prizes.map((prize) => {
     
     return (
@@ -193,8 +198,8 @@ const getCreatorInfo = async(creatorRef) => {
             Created by: {allUsers.length > 0? allUsers.find(e => e.id === prize.data().creator.id).data().name : 'couldn not fetch'}
           </Typography>
           <Typography variant="body3" color="text.secondary" component="div" gutterBottom sx={{mb: 1}}>
-            Prize Type:  {getPrizeTypeString(prize.data().prizeType)}
-          </Typography>
+          Prize Type: { getPrizeTypeString(prize.data().prizeType)}
+        </Typography>
           <Typography variant="body3" color={prize.data().winner && allUsers.length > 0? "green" : "text.secondary"} component="div" gutterBottom sx={{mb: 1}}>
             Winner: {prize.data().winner && allUsers.length > 0? allUsers.find(e => e.id === prize.data().winner.id).data().name : "No winner yet"}
           </Typography>
@@ -312,6 +317,19 @@ const getCreatorInfo = async(creatorRef) => {
                 >
                 Save
                 </Button>
+
+                <Button
+                fullWidth
+                variant="contained"
+                color='error'
+                sx={{ mt: 1, mb: 2 }}
+                onClick={async() => {
+                  handleClose();
+                  await deleteDoc(doc(db, 'prizes', prizeID));
+                }}
+              >
+                Delete
+              </Button>
 
                 {error?
               <Alert 

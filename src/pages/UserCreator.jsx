@@ -68,11 +68,14 @@ export default function UserCreator() {
             createUserAccount({email: email, password: password, uid: user.uid, gpa: parseFloat(GPA), grade: parseInt(grade), name: name, admin: admin}).then((result) => {
               console.log(result.data);
               setLoading('');
+              if(result.data.alreadyExistError){
+                setError('error creating some users:x that email may already be in use.');
+              }
               if(result.data.status === 'complete'){            
                 setSuccess('User created successfully!');
               } else {
-                setError(result.data.message + ', that email may already be in use.');
-              }
+                setError(result.data.message);
+              } 
             });
             
           }catch(e){

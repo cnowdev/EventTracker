@@ -93,7 +93,7 @@ export default function Dashboard({children}) {
   const {logout} = UserAuth();
   const {user} = UserAuth();
 
-
+//make the page name look readable
   const pageName = (val) => {
     switch(val){
       case 'Faq':
@@ -111,6 +111,7 @@ export default function Dashboard({children}) {
   }
 }
 
+//send the user back to the login page and sign them out 
   const handleLogout = async () => {
     try{
       await logout();
@@ -125,7 +126,7 @@ export default function Dashboard({children}) {
     setOpen(!open);
   };
 
-  
+  //when the user object exists, check the admin status of the user to determine how to render the dashboard
   React.useEffect(() => {
     if(user.uid){
       const fetchAdminStatus = async() => {
@@ -139,7 +140,7 @@ export default function Dashboard({children}) {
 
   }, [user]);
 
-
+//make the dashboard color red if the page is a admin page.
   const dashboardHeaderColor = (val) => {
     if(val == 'Event Creator' || val == 'User Creator' || val == 'Prize Creator' || val == 'Event Validator'){
       return true;
